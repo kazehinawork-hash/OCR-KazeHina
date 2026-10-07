@@ -92,6 +92,7 @@ Khi đóng gói để người dùng chạy trên máy khác không có .NET:
 - File đầu ra: Duy nhất `OCR_KazeHina_Portable/OCR_KazeHina.exe`. Xóa file `OcrWordApp.exe` trùng lặp và các file `.pdb`.
 - File hướng dẫn người dùng non-tech kèm ảnh minh họa: Duy nhất `OCR_KazeHina_Portable/Huong_Dan_Su_Dung.doc` (không để file doc hướng dẫn ở thư mục gốc).
 - **YÊU CẦU CỦA USER**: TUYỆT ĐỐI KHÔNG TẠO FILE NÉN `.zip`, chỉ cần cập nhật trực tiếp thư mục `OCR_KazeHina_Portable/`.
+- **YÊU CẦU GIT/GITHUB**: TUYỆT ĐỐI CHỈ COMMIT VÀ PUSH LÊN GITHUB KHI USER YÊU CẦU CỤ THỂ. Không tự ý push trong quá trình phát triển thường ngày.
 - Tuyệt đối không bật `<UseWindowsForms>true</UseWindowsForms>` nếu không cần thiết để tránh xung đột namespace với WPF.
 
 ---

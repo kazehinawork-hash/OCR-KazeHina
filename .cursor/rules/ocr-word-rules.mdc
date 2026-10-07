@@ -15,3 +15,4 @@ alwaysApply: true
    - Các model đã bị Google khai tử (trả về 404): `gemini-1.5-*`, `gemini-2.5-*`. Không được đưa vào danh sách chọn.
 6. **Lỗi chụp ảnh Zalo bị đen**: Zalo lưu ảnh vào Clipboard dạng DIB 32-bit với Alpha = 0. Khi đọc Clipboard, bắt buộc phải loại bỏ kênh Alpha hoặc ép sang `Bgr32` để không bị đen màn hình.
 7. **Đóng gói Portable**: Sử dụng lệnh publish self-contained single file vào thư mục `OCR_KazeHina_Portable/OCR_KazeHina.exe`. Không bật `UseWindowsForms` để tránh xung đột namespace với WPF. **TUYỆT ĐỐI KHÔNG TẠO FILE .ZIP**, chỉ cập nhật trực tiếp thư mục `OCR_KazeHina_Portable`.
+8. **Quy tắc Git/GitHub**: TUYỆT ĐỐI CHỈ COMMIT VÀ PUSH LÊN GITHUB KHI USER YÊU CẦU CỤ THỂ. Không tự ý push trong quá trình sửa lỗi thường ngày.
