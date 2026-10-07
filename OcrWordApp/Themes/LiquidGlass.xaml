@@ -1,0 +1,1246 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================
+         LIQUID GLASS 3.0 EFFECTS — PURE WPF
+         Merged from Glass 3.0 Taskbar + File Explorer themes
+
+         Blur tint levels (WPF approximation):
+           #10ffffff = very subtle (main frame)
+           #15ffffff = light subtle (tab normal)
+           #20ffffff = subtle (button normal)
+           #25ffffff = medium light (search box, tab selected)
+           #30ffffff = medium (active normal / pressed)
+           #35ffffff = medium bright (tab hover, accent hover)
+           #40ffffff = bright (button hover)
+           #80ffffff = gradient edges
+
+         Border gradients:
+           Vertical gray: #50808080 → #50404040 → #50808080 (main)
+           Diagonal white: #80ffffff → #50ffffff → #80ffffff (accent)
+         ============================================ -->
+
+    <!-- ===== 1. GLASS BACKDROP BRUSHES (Windhawk Glass 3.0 specs) ===== -->
+    <!-- ContentBG / Window base -->
+    <SolidColorBrush x:Key="GlassBackgroundBrush" Color="#3310101C"/>
+    <SolidColorBrush x:Key="GlassBackgroundHoverBrush" Color="#5018182E"/>
+    <SolidColorBrush x:Key="GlassBackgroundActiveBrush" Color="#5A202038"/>
+
+    <!-- Button backgrounds (TintOpacity=0.35 - 0.40) -->
+    <SolidColorBrush x:Key="GlassButtonNormalBrush" Color="#4D161628"/>
+    <SolidColorBrush x:Key="GlassButtonHoverBrush" Color="#7022223E"/>
+    <SolidColorBrush x:Key="GlassButtonPressedBrush" Color="#551C1C30"/>
+    <SolidColorBrush x:Key="GlassButtonActiveBrush" Color="#5A202038"/>
+    <SolidColorBrush x:Key="GlassButtonActiveHoverBrush" Color="#75282848"/>
+
+    <!-- Element backgrounds (ElementBackground / ElementBackground2 TintOpacity=0.4 & 0.2) -->
+    <SolidColorBrush x:Key="GlassElementBackgroundBrush" Color="#66141424"/>
+    <SolidColorBrush x:Key="GlassElementBackground2Brush" Color="#3810101E"/>
+    <SolidColorBrush x:Key="GlassButtonBackground2Brush" Color="#5518182C"/>
+    <SolidColorBrush x:Key="GlassAccentBackgroundBrush" Color="#4538467A"/>
+    <SolidColorBrush x:Key="GlassSearchBackgroundBrush" Color="#7016162A"/>
+
+    <!-- Tab states (Windhawk TabViewItem states) -->
+    <SolidColorBrush x:Key="GlassTabNormalBrush" Color="#28141424"/>
+    <SolidColorBrush x:Key="GlassTabSelectedBrush" Color="#60181830"/>
+    <SolidColorBrush x:Key="GlassTabHoverBrush" Color="#4A34446E"/>
+
+    <!-- Inner shadow for depth illusion -->
+    <LinearGradientBrush x:Key="GlassInnerShadowBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#40FFFFFF" />
+        <GradientStop Offset="0.1" Color="#15FFFFFF" />
+        <GradientStop Offset="0.9" Color="#05000000" />
+        <GradientStop Offset="1" Color="#20000000" />
+    </LinearGradientBrush>
+
+    <!-- Top highlight -->
+    <LinearGradientBrush x:Key="GlassTopHighlightBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Offset="0" Color="#00FFFFFF" />
+        <GradientStop Offset="0.3" Color="#0AFFFFFF" />
+        <GradientStop Offset="0.5" Color="#18FFFFFF" />
+        <GradientStop Offset="0.7" Color="#0AFFFFFF" />
+        <GradientStop Offset="1" Color="#00FFFFFF" />
+    </LinearGradientBrush>
+
+    <!-- Diagonal light sweep -->
+    <LinearGradientBrush x:Key="GlassDiagonalHighlightBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#00FFFFFF" />
+        <GradientStop Offset="0.35" Color="#00FFFFFF" />
+        <GradientStop Offset="0.48" Color="#0DFFFFFF" />
+        <GradientStop Offset="0.5" Color="#15FFFFFF" />
+        <GradientStop Offset="0.52" Color="#0DFFFFFF" />
+        <GradientStop Offset="0.65" Color="#00FFFFFF" />
+        <GradientStop Offset="1" Color="#00FFFFFF" />
+    </LinearGradientBrush>
+
+    <!-- ===== 2. BORDER BRUSHES (Windhawk Gradients) ===== -->
+    <!-- Main vertical border: gray gradient (File Explorer: #50808080 → #50404040 → #50808080) -->
+    <LinearGradientBrush x:Key="GlassVerticalBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#50808080" Offset="0.0" />
+        <GradientStop Color="#50404040" Offset="0.25" />
+        <GradientStop Color="#50808080" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Element vertical border: subtle gray (#50606060 at 0.15 → #50808080 at 1.0) -->
+    <LinearGradientBrush x:Key="GlassElementBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#50606060" Offset="0.15" />
+        <GradientStop Color="#50808080" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Diagonal white gradient border (#80ffffff → #30ffffff → #80ffffff) -->
+    <LinearGradientBrush x:Key="GlassGradientBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#80ffffff" Offset="0.0" />
+        <GradientStop Color="#35ffffff" Offset="0.55" />
+        <GradientStop Color="#80ffffff" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Hover gradient border -->
+    <LinearGradientBrush x:Key="GlassGradientBorderHoverBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#A0ffffff" Offset="0.0" />
+        <GradientStop Color="#50ffffff" Offset="0.55" />
+        <GradientStop Color="#A0ffffff" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Accent gradient border -->
+    <LinearGradientBrush x:Key="GlassAccentBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#8078ff" Offset="0.0" />
+        <GradientStop Color="#5050cc" Offset="0.55" />
+        <GradientStop Color="#8078ff" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Windhawk Neon Glow Brushes (Hiệu ứng phát sáng góc kính sang trọng) -->
+    <RadialGradientBrush x:Key="GlassCardHoverGlowBrush" Center="0.5,0.0" RadiusX="0.8" RadiusY="0.8">
+        <GradientStop Color="#2500E5FF" Offset="0.0" />
+        <GradientStop Color="#127B2CBF" Offset="0.45" />
+        <GradientStop Color="#00141424" Offset="1.0" />
+    </RadialGradientBrush>
+
+    <LinearGradientBrush x:Key="GlassCardShimmerBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#D000F0FF" Offset="0.0" />
+        <GradientStop Color="#60FFFFFF" Offset="0.3" />
+        <GradientStop Color="#307B2CBF" Offset="0.7" />
+        <GradientStop Color="#B000F0FF" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Windhawk Luxury Micro-Chip Brushes (Thẻ capsule kính phát quang) -->
+    <SolidColorBrush x:Key="ChipPendingBg" Color="#22FF9100"/>
+    <SolidColorBrush x:Key="ChipPendingBorder" Color="#55FF9100"/>
+    <SolidColorBrush x:Key="ChipTranslatedBg" Color="#2200E676"/>
+    <SolidColorBrush x:Key="ChipTranslatedBorder" Color="#5500E676"/>
+    <SolidColorBrush x:Key="ChipAudioBg" Color="#25E082FF"/>
+    <SolidColorBrush x:Key="ChipAudioBorder" Color="#60E082FF"/>
+    <SolidColorBrush x:Key="ChipGpuBg" Color="#2200B0FF"/>
+    <SolidColorBrush x:Key="ChipGpuBorder" Color="#5500B0FF"/>
+
+    <!-- Neon Action Gradient Button Brushes -->
+    <LinearGradientBrush x:Key="ButtonNeonGradientBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#00B4D8" Offset="0.0"/>
+        <GradientStop Color="#5A189A" Offset="1.0"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ButtonNeonGradientHoverBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#00F0FF" Offset="0.0"/>
+        <GradientStop Color="#7B2CBF" Offset="1.0"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ButtonNeonGradientBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#A000F0FF" Offset="0.0"/>
+        <GradientStop Color="#60FFFFFF" Offset="0.5"/>
+        <GradientStop Color="#A0E082FF" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <!-- ===== 3. ENHANCED SHADOWS ===== -->
+    <DropShadowEffect x:Key="GlassShadowDefault" 
+                      BlurRadius="20" ShadowDepth="2" Opacity="0.12" Direction="270" Color="#000000"/>
+    
+    <DropShadowEffect x:Key="GlassShadowHover" 
+                      BlurRadius="28" ShadowDepth="4" Opacity="0.20" Direction="270" Color="#000000"/>
+    
+    <DropShadowEffect x:Key="GlassShadowPress" 
+                      BlurRadius="14" ShadowDepth="1" Opacity="0.08" Direction="270" Color="#000000"/>
+
+    <DropShadowEffect x:Key="GlassInnerShadow" 
+                      BlurRadius="8" ShadowDepth="-1" Opacity="0.1" Direction="90" Color="#000000"/>
+
+    <!-- ===== 4. ANIMATIONS ===== -->
+    <Storyboard x:Key="GlassCardHoverStoryboard">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                         To="28" Duration="0:0:0.25" DecelerationRatio="0.8"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.ShadowDepth)"
+                         To="6" Duration="0:0:0.25" DecelerationRatio="0.8"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                         To="0.22" Duration="0:0:0.25" DecelerationRatio="0.8"/>
+        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(TranslateTransform.Y)"
+                         To="-3" Duration="0:0:0.25" DecelerationRatio="0.8"/>
+    </Storyboard>
+
+    <Storyboard x:Key="GlassCardLeaveStoryboard">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.BlurRadius)"
+                         To="20" Duration="0:0:0.25" AccelerationRatio="0.5"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.ShadowDepth)"
+                         To="2" Duration="0:0:0.25" AccelerationRatio="0.5"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)"
+                         To="0.12" Duration="0:0:0.25" AccelerationRatio="0.5"/>
+        <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).(TranslateTransform.Y)"
+                         To="0" Duration="0:0:0.25" AccelerationRatio="0.5"/>
+    </Storyboard>
+
+    <Storyboard x:Key="GlassButtonPressStoryboard">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                         To="0.97" Duration="0:0:0.08"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                         To="0.97" Duration="0:0:0.08"/>
+    </Storyboard>
+
+    <Storyboard x:Key="GlassButtonReleaseStoryboard">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                         To="1.0" Duration="0:0:0.12" DecelerationRatio="0.8"/>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                         To="1.0" Duration="0:0:0.12" DecelerationRatio="0.8"/>
+    </Storyboard>
+
+
+    <!-- ===== 5. GLASS 3.0 CARD STYLE (custom template with CornerRadius) ===== -->
+    <Style x:Key="LiquidGlassCard" TargetType="ui:Card"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="15"/>
+        <Setter Property="Margin" Value="6"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <TranslateTransform Y="0"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ui:Card">
+                    <Grid RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="CardScale" ScaleX="1.0" ScaleY="1.0"/>
+                                <TranslateTransform x:Name="CardTranslate" Y="0"/>
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <!-- Quầng sáng Neon Glow lan tỏa ngầm khi hover -->
+                        <Border x:Name="HoverGlow"
+                                CornerRadius="16" Margin="-2"
+                                Background="{DynamicResource GlassCardHoverGlowBrush}"
+                                Opacity="0">
+                            <Border.Effect>
+                                <BlurEffect Radius="14" KernelType="Gaussian"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <!-- Khung Kính Chính (Main Glass Body) -->
+                        <Border x:Name="CardBorder"
+                                Background="{DynamicResource GlassElementBackgroundBrush}"
+                                BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                              Margin="{TemplateBinding Margin}"/>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+                            <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource GlassCardShimmerBorderBrush}"/>
+                            <Setter TargetName="HoverGlow" Property="Opacity" Value="1"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard Timeline.DesiredFrameRate="60">
+                                        <DoubleAnimation Storyboard.TargetName="CardTranslate"
+                                                         Storyboard.TargetProperty="Y"
+                                                         To="-2.5" Duration="0:0:0.18" DecelerationRatio="0.8"/>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         To="1.008" Duration="0:0:0.18" DecelerationRatio="0.8"/>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         To="1.008" Duration="0:0:0.18" DecelerationRatio="0.8"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard Timeline.DesiredFrameRate="60">
+                                        <DoubleAnimation Storyboard.TargetName="CardTranslate"
+                                                         Storyboard.TargetProperty="Y"
+                                                         To="0" Duration="0:0:0.2" AccelerationRatio="0.6"/>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                         Storyboard.TargetProperty="ScaleX"
+                                                         To="1.0" Duration="0:0:0.2" AccelerationRatio="0.6"/>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                                         Storyboard.TargetProperty="ScaleY"
+                                                         To="1.0" Duration="0:0:0.2" AccelerationRatio="0.6"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.6"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 6. GLASS 3.0 BUTTON STYLE (gradient border + glass background — perf) ===== -->
+    <Style x:Key="LiquidGlassButton" TargetType="ui:Button"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="{DynamicResource GlassButtonNormalBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ui:Button">
+                    <Border x:Name="OuterBorder" Background="Transparent"
+                            BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                            BorderThickness="1" CornerRadius="8">
+                        <Border x:Name="InnerBorder" CornerRadius="7"
+                                Background="{DynamicResource GlassButtonNormalBrush}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="InnerBorder" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="InnerBorder" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 7. GLASS 3.0 PRIMARY BUTTON (accent + mirror gradient border — perf) ===== -->
+    <Style x:Key="LiquidGlassButtonPrimary" TargetType="ui:Button"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassAccentBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ui:Button">
+                    <Border x:Name="OuterBorder" Background="Transparent"
+                            BorderBrush="{DynamicResource GlassAccentBorderBrush}"
+                            BorderThickness="1" CornerRadius="8">
+                        <Border x:Name="InnerBorder" CornerRadius="7"
+                                Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="InnerBorder" Property="Background" Value="{DynamicResource GlassButtonActiveBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="InnerBorder" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 7B. LIQUID GLASS NEON ACTION BUTTON (Gradient Neon + Shimmer Border + Glow Hover) ===== -->
+    <Style x:Key="LiquidGlassNeonActionButton" TargetType="ui:Button"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="{StaticResource ButtonNeonGradientBrush}"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonNeonGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ui:Button">
+                    <Grid>
+                        <!-- Glow ngầm khi hover -->
+                        <Border x:Name="GlowBorder" CornerRadius="8" Margin="-1"
+                                Background="{StaticResource ButtonNeonGradientHoverBrush}"
+                                Opacity="0">
+                            <Border.Effect>
+                                <BlurEffect Radius="10" KernelType="Gaussian"/>
+                            </Border.Effect>
+                        </Border>
+
+                        <Border x:Name="OuterBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="GlowBorder" Property="Opacity" Value="0.85"/>
+                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource ButtonNeonGradientHoverBrush}"/>
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#FFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="OuterBorder" Property="Opacity" Value="0.8"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 8. GLASS 3.0 TEXTBOX STYLE (gradient border & focus neon) ===== -->
+    <Style x:Key="LiquidGlassTextBox" TargetType="ui:TextBox" BasedOn="{StaticResource {x:Type ui:TextBox}}"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="{DynamicResource GlassSearchBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderBrush" Value="#00F0FF"/>
+                <Setter Property="Background" Value="{DynamicResource GlassBackgroundActiveBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===== 9. INNER BORDER STYLE ===== -->
+    <Style x:Key="GlassInnerBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassInnerShadowBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="Margin" Value="1"/>
+    </Style>
+
+    <!-- ===== 10. NAVIGATION PANEL GLASS (no shadow — perf) ===== -->
+    <Style x:Key="LiquidGlassNavPanel" TargetType="ui:NavigationView"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Background" Value="{DynamicResource GlassBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,0"/>
+    </Style>
+
+    <!-- ===== 11. STAT TILE (no shadow — perf) ===== -->
+    <Style x:Key="LiquidGlassStatTile" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===== 12. SEARCH BOX GLASS ===== -->
+    <Style x:Key="LiquidGlassSearchBox" TargetType="ui:TextBox" BasedOn="{StaticResource LiquidGlassTextBox}"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="Background" Value="{DynamicResource GlassSearchBackgroundBrush}"/>
+    </Style>
+
+    <!-- ===== 13. LOG PANEL GLASS (no shadow — perf) ===== -->
+    <Style x:Key="GlassLogPanel" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="0,8,8,0"/>
+    </Style>
+
+    <!-- ===== 14. GLASS COMBOBOX STYLE ===== -->
+    <Style x:Key="GlassComboBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <Setter Property="Padding" Value="10,4,6,4"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== 15. GLASS PLAIN BUTTON (for non-ui:Button elements) ===== -->
+    <Style x:Key="GlassPlainButton" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource GlassButtonNormalBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0.3,0.3,0.3,1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 16. GLASS ICON BUTTON (Compact toolbar button) ===== -->
+    <Style x:Key="GlassIconButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0.3,0.3,0.3,1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GlassElementBorderBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 17. GLASS COLLAPSE BUTTON (Dock expand/collapse bar button) ===== -->
+    <Style x:Key="GlassCollapseButton" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource GlassButtonNormalBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                            <Setter Property="Foreground" Value="#00F0FF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 17B. GLASS DANGER BUTTON (Dừng / Hủy khẩn cấp Glass) ===== -->
+    <Style x:Key="GlassDangerButton" TargetType="Button">
+        <Setter Property="Background" Value="#2A1B1B"/>
+        <Setter Property="Foreground" Value="#FF6B6B"/>
+        <Setter Property="BorderBrush" Value="#66FF5252"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="8,3"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#4D1F1F"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FF5252"/>
+                            <Setter Property="Foreground" Value="#FF8A80"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#661A1A"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 15. GLASS TAB HEADER (File Explorer tab style) ===== -->
+    <Style x:Key="GlassTabHeader" TargetType="RadioButton">
+        <Setter Property="Background" Value="{DynamicResource GlassTabNormalBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="14,6"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassTabHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassTabSelectedBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource GlassCardShimmerBorderBrush}"/>
+                            <Setter TargetName="Bd" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#00F0FF" BlurRadius="10" ShadowDepth="0" Opacity="0.35"/>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 15B. GLASS NAV PILL ITEM (Left Sidebar Pill Style) ===== -->
+    <Style x:Key="GlassNavPillItem" TargetType="ui:NavigationViewItem"
+           xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+        <Setter Property="Margin" Value="4,4"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ui:NavigationViewItem">
+                    <Border x:Name="PillBorder"
+                            Background="{DynamicResource GlassTabNormalBrush}"
+                            BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Height="40"
+                            SnapsToDevicePixels="True">
+                        <Grid Margin="6,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Vạch chỉ báo phát quang lướt mượt (Active Indicator Pill) -->
+                            <Border x:Name="ActiveIndicator" Grid.Column="0"
+                                    Width="3.5" Height="18" CornerRadius="2"
+                                    Background="{DynamicResource AccentFillColorDefaultBrush}"
+                                    Margin="0,0,6,0" Visibility="Collapsed"
+                                    VerticalAlignment="Center">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#00F0FF" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                                </Border.Effect>
+                            </Border>
+
+                            <ContentPresenter Grid.Column="1" Content="{TemplateBinding Icon}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter Grid.Column="2" Content="{TemplateBinding Content}"
+                                              VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="PillBorder" Property="Background" Value="{DynamicResource GlassTabHoverBrush}"/>
+                            <Setter TargetName="PillBorder" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsActive" Value="True">
+                            <Setter TargetName="PillBorder" Property="Background" Value="{DynamicResource GlassTabSelectedBrush}"/>
+                            <Setter TargetName="PillBorder" Property="BorderBrush" Value="{DynamicResource GlassCardShimmerBorderBrush}"/>
+                            <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 15C. GLASS CHIP BUTTON (Interactive tag/chip button) ===== -->
+    <Style x:Key="GlassChipButton" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0.8"/>
+        <Setter Property="Padding" Value="9,3"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#00F0FF"/>
+                            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 14A. GLASS THIN SCROLLBAR (Thanh cuộn mỏng kính mờ siêu thực Liquid Glass 3.0) ===== -->
+    <Style x:Key="GlassScrollBarThumbVertical" TargetType="Thumb">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid>
+                        <!-- Thân thanh cuộn bo góc dạng viên thuốc (Pill) trong suốt phát quang -->
+                        <Border x:Name="ThumbVisual" CornerRadius="3" Margin="1,2"
+                                Background="{DynamicResource GlassElementBackgroundBrush}"
+                                BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                                BorderThickness="0.8" Opacity="0.65"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ThumbVisual" Property="Opacity" Value="1"/>
+                            <Setter TargetName="ThumbVisual" Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+                            <Setter TargetName="ThumbVisual" Property="BorderBrush" Value="#00F0FF"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="ThumbVisual" Property="Opacity" Value="1"/>
+                            <Setter TargetName="ThumbVisual" Property="Background" Value="{DynamicResource GlassBackgroundActiveBrush}"/>
+                            <Setter TargetName="ThumbVisual" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GlassScrollBarThumbHorizontal" TargetType="Thumb">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid>
+                        <Border x:Name="ThumbVisual" CornerRadius="3" Margin="2,1"
+                                Background="{DynamicResource GlassElementBackgroundBrush}"
+                                BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                                BorderThickness="0.8" Opacity="0.65"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ThumbVisual" Property="Opacity" Value="1"/>
+                            <Setter TargetName="ThumbVisual" Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+                            <Setter TargetName="ThumbVisual" Property="BorderBrush" Value="#00F0FF"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="ThumbVisual" Property="Opacity" Value="1"/>
+                            <Setter TargetName="ThumbVisual" Property="Background" Value="{DynamicResource GlassBackgroundActiveBrush}"/>
+                            <Setter TargetName="ThumbVisual" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GlassThinScrollBar" TargetType="ScrollBar">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="7"/>
+                <Setter Property="MinWidth" Value="7"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="True">
+                                <Track x:Name="PART_Track" IsDirectionReversed="True" HorizontalAlignment="Center" Width="7">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource GlassScrollBarThumbVertical}"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Height" Value="7"/>
+                <Setter Property="MinHeight" Value="7"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="True">
+                                <Track x:Name="PART_Track" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="7">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource GlassScrollBarThumbHorizontal}"/>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Global ScrollBar style for application-wide thin glass scrollbars -->
+    <Style TargetType="ScrollBar" BasedOn="{StaticResource GlassThinScrollBar}"/>
+
+
+    <!-- ===== 14B. GLASS GRID SPLITTER (Thanh kéo giãn Console viền kính phát sáng) ===== -->
+    <Style x:Key="GlassGridSplitter" TargetType="GridSplitter">
+        <Setter Property="Width" Value="6"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="SizeWE"/>
+        <Setter Property="ShowsPreview" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GridSplitter">
+                    <Grid Background="Transparent">
+                        <!-- Đường kẻ kính trung tâm -->
+                        <Border x:Name="GripLine" Width="1.5"
+                                Background="{DynamicResource GlassGradientBorderBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+                        <!-- Quầng sáng khi hover hoặc khi kéo -->
+                        <Border x:Name="HoverGlow" Width="3" CornerRadius="1.5"
+                                Background="#00F0FF" Opacity="0"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00F0FF" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HoverGlow" Property="Opacity" Value="1"/>
+                            <Setter TargetName="GripLine" Property="Opacity" Value="0"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="HoverGlow" Property="Opacity" Value="1"/>
+                            <Setter TargetName="HoverGlow" Property="Width" Value="4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 15. TOOLTIP GLASS ===== -->
+    <Style x:Key="GlassToolTip" TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassElementBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0.3,0.3,0.3,1"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <!-- ===== 16. PROGRESS BAR GLASS 3.0 (Gradient, Glow & Smooth Corner) ===== -->
+    <LinearGradientBrush x:Key="ProgressBarGlassTrackBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#40101020" Offset="0"/>
+        <GradientStop Color="#6016162E" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="ProgressBarGlassIndicatorBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#00B4D8" Offset="0"/>
+        <GradientStop Color="#48CAE4" Offset="0.4"/>
+        <GradientStop Color="#7B2CBF" Offset="0.85"/>
+        <GradientStop Color="#9D4EDD" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Mirror highlight phủ nửa trên của indicator (hiệu ứng gương) -->
+    <LinearGradientBrush x:Key="ProgressBarGlassHighlightBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#8CFFFFFF" Offset="0"/>
+        <GradientStop Color="#2EFFFFFF" Offset="0.45"/>
+        <GradientStop Color="#00FFFFFF" Offset="0.6"/>
+    </LinearGradientBrush>
+
+    <Style x:Key="GlassProgressBar" TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource ProgressBarGlassTrackBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassElementBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0.5"/>
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <!-- Track: bo tròn 2 đầu kiểu pill + viền gương -->
+                    <Border x:Name="Track" Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4" ClipToBounds="True">
+                        <Grid x:Name="PART_Track">
+                            <!-- Indicator (giá trị thực) -->
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    CornerRadius="4" ClipToBounds="True"
+                                    Background="{StaticResource ProgressBarGlassIndicatorBrush}">
+                                <!-- Lớp gương phản chiếu phủ nửa trên -->
+                                <Border Background="{StaticResource ProgressBarGlassHighlightBrush}"/>
+                            </Border>
+                            <!-- Bubble trượt trái → phải cho chế độ Indeterminate -->
+                            <Border x:Name="PART_GlowRect"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                    CornerRadius="4" ClipToBounds="True"
+                                    Visibility="Collapsed">
+                                <Border.Background>
+                                    <!-- Vệt sáng gradient Neon Cyan + Hologram lướt mượt -->
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <LinearGradientBrush.RelativeTransform>
+                                            <TranslateTransform x:Name="GlowBrushTransform" X="-1"/>
+                                        </LinearGradientBrush.RelativeTransform>
+                                        <GradientStop Color="#0000F0FF" Offset="0"/>
+                                        <GradientStop Color="#2500F0FF" Offset="0.15"/>
+                                        <GradientStop Color="#A000F0FF" Offset="0.35"/>
+                                        <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
+                                        <GradientStop Color="#D0B388FF" Offset="0.65"/>
+                                        <GradientStop Color="#407B2CBF" Offset="0.85"/>
+                                        <GradientStop Color="#007B2CBF" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="True">
+                            <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_GlowRect" Property="Visibility" Value="Visible"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="GlowBrushTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         From="-1.2" To="1.8"
+                                                         Duration="0:0:1.4"
+                                                         AccelerationRatio="0.2"
+                                                         DecelerationRatio="0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 17. REALTIME PULSE PROGRESS BAR (Đồng bộ chuẩn Liquid Glass 3.0 với dự án) ===== -->
+    <Style x:Key="RealtimePulseProgressBar" TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource ProgressBarGlassTrackBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Height" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid>
+                        <!-- Khung Pill kính mờ viền phản quang đồng bộ Liquid Glass -->
+                        <Border x:Name="Track" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4" ClipToBounds="True">
+                            <Grid x:Name="PART_Track">
+                                <!-- Indicator (khi có % cụ thể): Accent Gradient chuẩn của dự án -->
+                                <Border x:Name="PART_Indicator" HorizontalAlignment="Left"
+                                        CornerRadius="3" ClipToBounds="True"
+                                        Background="{StaticResource ProgressBarGlassIndicatorBrush}">
+                                    <!-- Lớp ánh gương phản chiếu kính mờ đặc trưng Liquid Glass -->
+                                    <Border Background="{StaticResource ProgressBarGlassHighlightBrush}"/>
+                                </Border>
+                                
+                                <!-- Dải ánh sáng lướt mượt chuẩn Liquid Glass: Sapphire Blue → Accent Mint → Purple -->
+                                <Border x:Name="PART_LaserBeam" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                        CornerRadius="3" ClipToBounds="True" Visibility="Collapsed">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <LinearGradientBrush.RelativeTransform>
+                                                <TranslateTransform x:Name="LaserTransform" X="-1"/>
+                                            </LinearGradientBrush.RelativeTransform>
+                                            <GradientStop Color="#0000B4D8" Offset="0"/>
+                                            <GradientStop Color="#2548CAE4" Offset="0.15"/>
+                                            <GradientStop Color="#9048CAE4" Offset="0.35"/>
+                                            <GradientStop Color="#E6FFFFFF" Offset="0.5"/>
+                                            <GradientStop Color="#B87B2CBF" Offset="0.65"/>
+                                            <GradientStop Color="#409D4EDD" Offset="0.85"/>
+                                            <GradientStop Color="#009D4EDD" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="True">
+                            <Setter TargetName="PART_Indicator" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_LaserBeam" Property="Visibility" Value="Visible"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="LaserTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         From="-1.2" To="1.8"
+                                                         Duration="0:0:1.5"
+                                                         AccelerationRatio="0.2"
+                                                         DecelerationRatio="0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 18. MINI AUDIO WAVEFORM VISUALIZER (Thanh sóng âm thanh huỳnh quang Glass 3.0) ===== -->
+    <Style x:Key="MiniWaveformVisualizer" TargetType="Control">
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Control">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <!-- Cột sóng 1 -->
+                        <Border Width="2.5" Height="6" CornerRadius="1.2" Margin="1,0"
+                                Background="#E082FF" VerticalAlignment="Center">
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="30">
+                                            <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                             From="4" To="12" Duration="0:0:0.65"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                        </Border>
+                        <!-- Cột sóng 2 (chính) -->
+                        <Border Width="2.5" Height="12" CornerRadius="1.2" Margin="1,0"
+                                Background="#00F0FF" VerticalAlignment="Center">
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="30">
+                                            <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                             From="13" To="5" Duration="0:0:0.45"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                        </Border>
+                        <!-- Cột sóng 3 -->
+                        <Border Width="2.5" Height="8" CornerRadius="1.2" Margin="1,0"
+                                Background="#48CAE4" VerticalAlignment="Center">
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="30">
+                                            <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                             From="3" To="11" Duration="0:0:0.55"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                        </Border>
+                        <!-- Cột sóng 4 -->
+                        <Border Width="2.5" Height="5" CornerRadius="1.2" Margin="1,0"
+                                Background="#B87B2CBF" VerticalAlignment="Center">
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="30">
+                                            <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                             From="5" To="13" Duration="0:0:0.75"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                        </Border>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 19. LIVE GLOW PULSE DOT (Đèn LED nhịp thở Cyan Neon phát quang sống động) ===== -->
+    <Style x:Key="LiveGlowPulseDot" TargetType="Control">
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Control">
+                    <Grid Width="14" Height="14">
+                        <!-- Quầng sáng tỏa nhịp thở ngầm (Outer Glow Ring) -->
+                        <Border x:Name="GlowRing" Width="12" Height="12" CornerRadius="6"
+                                Background="#00F0FF" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Opacity="0.3">
+                            <Border.Effect>
+                                <BlurEffect Radius="6" KernelType="Gaussian"/>
+                            </Border.Effect>
+                            <Border.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True" Timeline.DesiredFrameRate="30">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0.2" To="0.8" Duration="0:0:1.2"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                             From="0.8" To="1.25" Duration="0:0:1.2"/>
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                             From="0.8" To="1.25" Duration="0:0:1.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Border.Triggers>
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1.0" ScaleY="1.0" CenterX="6" CenterY="6"/>
+                            </Border.RenderTransform>
+                        </Border>
+
+                        <!-- Điểm lõi phát quang sắc nét (Core Dot) -->
+                        <Border Width="7" Height="7" CornerRadius="3.5" Background="#00F0FF"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00F0FF" BlurRadius="5" ShadowDepth="0" Opacity="0.9"/>
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 20. SHIMMER SKELETON LOADING (Vệt sáng lướt kính 60fps khi chờ nạp) ===== -->
+    <LinearGradientBrush x:Key="GlassShimmerSweepBrush" StartPoint="-1,0" EndPoint="2,0">
+        <GradientStop Color="#10FFFFFF" Offset="0.0"/>
+        <GradientStop Color="#2500F0FF" Offset="0.4"/>
+        <GradientStop Color="#40FFFFFF" Offset="0.5"/>
+        <GradientStop Color="#2500F0FF" Offset="0.6"/>
+        <GradientStop Color="#10FFFFFF" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <Style x:Key="GlassShimmerSkeleton" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassElementBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Child">
+            <Setter.Value>
+                <Border x:Name="ShimmerSweep" Background="{StaticResource GlassShimmerSweepBrush}" Opacity="0.75">
+                    <Border.RenderTransform>
+                        <TranslateTransform x:Name="SweepTranslate" X="-200"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" Timeline.DesiredFrameRate="30">
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                     From="-260" To="360" Duration="0:0:1.4"
+                                                     AccelerationRatio="0.3" DecelerationRatio="0.3"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== 21. FLOATING MODERN DROPZONE (Vùng kéo thả sách mời gọi lơ lửng) ===== -->
+    <Style x:Key="GlassModernDropZone" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackground2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource GlassBackgroundHoverBrush}"/>
+                <Setter Property="BorderBrush" Value="#00F0FF"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="#00F0FF" BlurRadius="16" ShadowDepth="0" Opacity="0.35"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

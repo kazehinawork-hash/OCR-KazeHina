@@ -1,0 +1,29 @@
+# .NET build artifacts
+**/bin/
+**/obj/
+*.pdb
+
+# Publish and portable binaries (heavy binaries should not be committed to Git)
+AppPublish/
+OCR_KazeHina_Portable/*.exe
+*.zip
+*.7z
+
+# Python cache and environment
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# User specific and secrets
+*.user
+*.suo
+.vs/
+*gemini_key*.txt
+.ocr_word_gemini_key.txt
+
+# Temporary doc tests
+*Test_*.doc
+DeThi_ChuyenDoi.doc
+scratch/

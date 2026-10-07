@@ -1,0 +1,17 @@
+---
+description: Quy chuẩn kỹ thuật và bài học cốt lõi cho dự án OCR KazeHina
+globs: **/*
+alwaysApply: true
+---
+
+# RULES DỰ ÁN OCR KAZEHINA (OCR PDF / ẢNH SANG WORD)
+
+1. **Công thức Toán - Lý - Hóa**: BẮT BUỘC 100% dùng thẻ MathML `<math xmlns="http://www.w3.org/1998/Math/MathML">` để Microsoft Word tự động hiển thị thành ô Equation nguyên bản. Cấm dùng LaTeX `$...$` hay ảnh.
+2. **Đáp án A, B, C, D**: BẮT BUỘC dùng bảng ẩn viền (`border: none; border-collapse: collapse;`) với 4 cột 25% hoặc 2 cột 50%. Tuyệt đối không dùng phím Tab thông thường vì công thức MathML dài sẽ làm rớt đáp án D xuống dòng mới.
+3. **Chống kéo dãn chữ (Justify)**: Cấm gán `text-align: justify;` vào các thẻ cha như `<body>`, `<td>`, `<div>`. Chỉ gán cho `<p>` văn bản xuôi dài từ 2 dòng trở lên. Các gạch đầu dòng phải là thẻ `<p>` độc lập với `margin: 2pt 0 2pt 18pt; text-align: left;`.
+4. **Tránh lỗi hỏi bảng mã Word**: Luôn lưu file với UTF-8 BOM (`new UTF8Encoding(true)`) và thẻ `<meta charset="utf-8">`.
+5. **Mô hình Gemini**:
+   - Model mặc định số 1: `gemini-3.1-flash-lite`.
+   - Các model đã bị Google khai tử (trả về 404): `gemini-1.5-*`, `gemini-2.5-*`. Không được đưa vào danh sách chọn.
+6. **Lỗi chụp ảnh Zalo bị đen**: Zalo lưu ảnh vào Clipboard dạng DIB 32-bit với Alpha = 0. Khi đọc Clipboard, bắt buộc phải loại bỏ kênh Alpha hoặc ép sang `Bgr32` để không bị đen màn hình.
+7. **Đóng gói Portable**: Sử dụng lệnh publish self-contained single file vào thư mục `OCR_KazeHina_Portable/OCR_KazeHina.exe`. Không bật `UseWindowsForms` để tránh xung đột namespace với WPF. **TUYỆT ĐỐI KHÔNG TẠO FILE .ZIP**, chỉ cập nhật trực tiếp thư mục `OCR_KazeHina_Portable`.

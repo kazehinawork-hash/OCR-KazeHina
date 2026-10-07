@@ -1,0 +1,209 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Log RichTextBox — monospace, read-only, auto-scroll, colored entries (glass-style) -->
+    <Style x:Key="LogRichTextBox" TargetType="RichTextBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontFamily" Value="Consolas"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="IsDocumentEnabled" Value="True"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <!-- InteractiveCard — Glass 3.0: gradient border + blur tint (no shadow animation — perf) -->
+    <Style x:Key="InteractiveCard" TargetType="ui:Card" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+           BasedOn="{StaticResource LiquidGlassCard}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.58"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- InteractiveButton — Glass 3.0: gradient border + blur tint (no shadow — perf) -->
+    <Style x:Key="InteractiveButton" TargetType="ui:Button" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+           BasedOn="{StaticResource LiquidGlassButton}">
+        <Style.Triggers>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- InteractiveButtonPrimary — Glass 3.0 accent button: gradient mirror border + accent fill -->
+    <Style x:Key="InteractiveButtonPrimary" TargetType="ui:Button" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+           BasedOn="{StaticResource LiquidGlassButtonPrimary}">
+        <Style.Triggers>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- InteractiveButtonNeon — Windhawk Cyberpunk Glow Button for main actions -->
+    <Style x:Key="InteractiveButtonNeon" TargetType="ui:Button" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+           BasedOn="{StaticResource LiquidGlassNeonActionButton}">
+        <Style.Triggers>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- InteractiveTextBox — Glass 3.0: gradient border + focus accent -->
+    <Style x:Key="InteractiveTextBox" TargetType="ui:TextBox" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+           BasedOn="{StaticResource LiquidGlassTextBox}">
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- StatTile — Glass 3.0 gradient border mini-card -->
+    <Style x:Key="StatTile" TargetType="Border" BasedOn="{StaticResource LiquidGlassStatTile}"/>
+
+    <!-- Book card header (Glass 3.0: fully rounded inner capsule with subtle glow border) -->
+    <Style x:Key="BookCardHeader" TargetType="Border">
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+        <Setter Property="Background" Value="{DynamicResource GlassElementBackground2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0.8"/>
+    </Style>
+
+    <!-- NavPaneToggleButton — nút 3 gạch sidebar: luôn nổi bật, viền gương phát sáng, không chìm vào nền -->
+    <Style x:Key="NavPaneToggleButton" TargetType="Button">
+        <Setter Property="Background" Value="#38223048"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}"/>
+                            <Setter Property="Foreground" Value="#00F0FF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonPressedBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TreeViewItem toggle chevron -->
+    <Style x:Key="ExpandCollapseToggleStyle" TargetType="ToggleButton">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Width" Value="16"/>
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent" Width="16" Height="16">
+                        <Path x:Name="ExpandPath" Data="M 4 2 L 8 8 L 4 14"
+                               Stroke="{DynamicResource TextFillColorSecondaryBrush}" StrokeThickness="1.5"
+                              StrokeEndLineCap="Round" StrokeStartLineCap="Round" StrokeLineJoin="Round"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="ExpandPath" Property="Data" Value="M 2 6 L 8 10 L 14 6"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ExpandPath" Property="Stroke" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TreeViewItem — hover/selection highlight, used in EPUB preview -->
+    <Style x:Key="AppTreeViewItem" TargetType="TreeViewItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="4,4"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TreeViewItem">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Border x:Name="Bd" Grid.Column="0" Grid.ColumnSpan="3"
+                                Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true"/>
+                        <ToggleButton x:Name="Expander" Style="{StaticResource ExpandCollapseToggleStyle}"
+                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press" Margin="0,0,4,0"/>
+                        <ContentPresenter x:Name="PART_Header" Grid.Column="1" ContentSource="Header"
+                                          VerticalAlignment="Center" Margin="4,2"/>
+                        <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="false">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="false">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonActiveBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true" SourceName="Bd">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource GlassButtonNormalBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Accessibility focus indicator -->
+    <Style x:Key="AccentFocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Control">
+                    <Border BorderBrush="{DynamicResource AccentFillColorDefaultBrush}" BorderThickness="2" CornerRadius="6" Margin="-2"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
