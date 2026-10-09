@@ -33,8 +33,27 @@ public partial class MainWindow : FluentWindow
         ".ocr_word_gemini_key.txt"
     );
 
+    private static string? FindKeyFile(string fileName)
+    {
+        // Ưu tiên file cạnh file .exe (bản đóng gói), sau đó dò ngược lên các thư mục cha
+        // để đọc trực tiếp file nguồn trong thư mục dự án khi chạy Debug/Release.
+        var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+        for (int i = 0; i < 5 && dir != null; i++)
+        {
+            var candidate = Path.Combine(dir.FullName, fileName);
+            if (File.Exists(candidate)) return candidate;
+            dir = dir.Parent;
+        }
+        return null;
+    }
+
+    private static string? FindApiKeysFile() => FindKeyFile("api_keys.txt");
+
+    private readonly List<string> _activeApiKeys = new();
+    private readonly List<string> _activeDeepSeekKeys = new();
+    private int _keyRotationIndex = 0;
+
     private readonly ObservableCollection<FileItem> _fileItems = new();
-    private CancellationTokenSource? _debounceCts;
 
     public MainWindow()
     {
@@ -50,10 +69,16 @@ public partial class MainWindow : FluentWindow
         this.KeyDown += MainWindow_KeyDown;
 
         LoadSavedApiKey();
+        LoadDeepSeekKey();
 
-        if (!string.IsNullOrWhiteSpace(TxtApiKey.Password))
+        if (_activeDeepSeekKeys.Count > 0)
         {
-            _ = FetchModelsAsync(TxtApiKey.Password.Trim());
+            TxtStatus.Text += "  🛟 Đã có DeepSeek dự phòng.";
+        }
+
+        if (_activeApiKeys.Count > 0)
+        {
+            _ = FetchModelsAsync(_activeApiKeys[0]);
         }
         else
         {
@@ -65,16 +90,46 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    public const int MaxAllowedImages = 5;
+
+    private void UpdateFileCountBadge()
+    {
+        if (TxtFileCountBadge != null)
+        {
+            TxtFileCountBadge.Text = $"{_fileItems.Count}/{MaxAllowedImages} ảnh (Tối đa {MaxAllowedImages} ảnh/lần)";
+            if (_fileItems.Count >= MaxAllowedImages)
+            {
+                TxtFileCountBadge.Foreground = System.Windows.Media.Brushes.OrangeRed;
+            }
+            else
+            {
+                TxtFileCountBadge.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x38, 0xBD, 0xF8));
+            }
+        }
+    }
+
     private void ReindexItems()
     {
         for (int i = 0; i < _fileItems.Count; i++)
         {
             _fileItems[i].IndexNumber = i + 1;
         }
+        UpdateFileCountBadge();
     }
 
     private void AddFileItem(string path)
     {
+        if (_fileItems.Count >= MaxAllowedImages)
+        {
+            System.Windows.MessageBox.Show(
+                $"Khuyến nghị tối đa {MaxAllowedImages} ảnh/trang cho mỗi lần chuyển đổi để đảm bảo AI bóc tách đầy đủ 100% không bị quá tải hoặc rớt câu.\n\nBạn hãy bấm 'Bắt đầu' để xuất tài liệu hiện tại ra Word trước, sau đó tiếp tục xử lý các ảnh tiếp theo nhé!",
+                "Đã đạt giới hạn ảnh tối đa",
+                System.Windows.MessageBoxButton.OK,
+                MessageBoxImage.Information
+            );
+            return;
+        }
+
         if (_fileItems.Any(f => f.FilePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             return;
 
@@ -218,11 +273,8 @@ public partial class MainWindow : FluentWindow
         if (e.Key == System.Windows.Input.Key.V && 
             (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
         {
-            if (!TxtApiKey.IsFocused)
-            {
-                PasteFromClipboard();
-                e.Handled = true;
-            }
+            PasteFromClipboard();
+            e.Handled = true;
         }
     }
 
@@ -380,64 +432,114 @@ public partial class MainWindow : FluentWindow
 
     private void LoadSavedApiKey()
     {
+        _activeApiKeys.Clear();
+        _activeDeepSeekKeys.Clear();
+
+        // 1. Ưu tiên cao nhất: Đọc file api_keys.txt (cạnh .exe, hoặc file nguồn trong thư mục dự án).
+        //    Tự phân loại: dòng bắt đầu bằng 'sk-' là key DeepSeek dự phòng, còn lại là key Gemini.
+        var apiKeysPath = FindApiKeysFile();
+        if (apiKeysPath != null)
+        {
+            try
+            {
+                var lines = File.ReadAllLines(apiKeysPath)
+                    .Select(l => l.Trim())
+                    .Where(l => !string.IsNullOrEmpty(l) && !l.StartsWith("#") && l.Length >= 20)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var key in lines)
+                {
+                    if (key.StartsWith("sk-", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!_activeDeepSeekKeys.Contains(key)) _activeDeepSeekKeys.Add(key);
+                    }
+                    else
+                    {
+                        if (!_activeApiKeys.Contains(key)) _activeApiKeys.Add(key);
+                    }
+                }
+
+                if (_activeApiKeys.Count > 0)
+                {
+                    var deepNote = (_activeDeepSeekKeys.Count > 0) ? $" + {_activeDeepSeekKeys.Count} DeepSeek Key dự phòng" : "";
+                    TxtStatus.Text = $"🔑 Đã nạp {_activeApiKeys.Count} Gemini Key{deepNote} từ 'api_keys.txt' (Tự động xoay vòng).";
+                    return;
+                }
+            }
+            catch { }
+        }
+
+        // 2. Dự phòng: Đọc biến môi trường
         var envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
         if (!string.IsNullOrWhiteSpace(envKey))
         {
-            TxtApiKey.Password = envKey;
+            _activeApiKeys.Add(envKey.Trim());
             return;
         }
 
+        // 3. Dự phòng: Đọc file key cá nhân đã lưu trong thư mục User
         if (File.Exists(KeyFilePath))
         {
             try
             {
-                TxtApiKey.Password = File.ReadAllText(KeyFilePath).Trim();
+                var savedKeys = File.ReadAllLines(KeyFilePath)
+                    .Select(l => l.Trim())
+                    .Where(l => !string.IsNullOrEmpty(l) && !l.StartsWith("#") && l.Length >= 25)
+                    .Distinct()
+                    .ToList();
+
+                if (savedKeys.Count > 0)
+                {
+                    _activeApiKeys.AddRange(savedKeys);
+                    if (_activeApiKeys.Count > 1)
+                    {
+                        TxtStatus.Text = $"🔑 Đã nạp {_activeApiKeys.Count} API Key từ cấu hình đã lưu.";
+                    }
+                }
             }
             catch { }
         }
     }
 
-    private void SaveApiKey(string key)
+    private void LoadDeepSeekKey()
     {
-        try
+        // Đã có key DeepSeek từ api_keys.txt (dòng bắt đầu bằng 'sk-') thì thôi
+        if (_activeDeepSeekKeys.Count > 0) return;
+
+        // Dự phòng 1: Biến môi trường
+        var envKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
+        if (!string.IsNullOrWhiteSpace(envKey))
         {
-            File.WriteAllText(KeyFilePath, key.Trim());
+            _activeDeepSeekKeys.Add(envKey.Trim());
+            return;
         }
-        catch { }
-    }
 
-    private void TxtApiKey_PasswordChanged(object sender, RoutedEventArgs e)
-    {
-        var key = TxtApiKey.Password.Trim();
-        if (key.Length < 25) return;
-
-        _debounceCts?.Cancel();
-        _debounceCts = new CancellationTokenSource();
-        var token = _debounceCts.Token;
-
-        Task.Delay(600, token).ContinueWith(t =>
+        // Dự phòng 2: File cá nhân trong thư mục User
+        var userFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".deepseek_key.txt");
+        if (File.Exists(userFile))
         {
-            if (!t.IsCanceled)
+            try
             {
-                Dispatcher.Invoke(() =>
-                {
-                    SaveApiKey(key);
-                    _ = FetchModelsAsync(key);
-                });
+                var lines = File.ReadAllLines(userFile)
+                    .Select(l => l.Trim())
+                    .Where(l => !string.IsNullOrEmpty(l) && !l.StartsWith("#") && l.Length >= 20)
+                    .Distinct()
+                    .ToList();
+                if (lines.Count > 0) _activeDeepSeekKeys.AddRange(lines);
             }
-        }, token);
+            catch { }
+        }
     }
 
     private async void BtnRefreshModels_Click(object sender, RoutedEventArgs e)
     {
-        var key = TxtApiKey.Password.Trim();
-        if (string.IsNullOrWhiteSpace(key))
+        if (_activeApiKeys.Count == 0)
         {
-            System.Windows.MessageBox.Show("Vui lòng nhập Gemini API Key để quét danh sách mô hình.", "Thiếu API Key", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
+            System.Windows.MessageBox.Show("Chưa có Gemini API Key. Hãy đặt file 'api_keys.txt' cạnh phần mềm (hoặc thiết lập biến môi trường GEMINI_API_KEY).", "Thiếu API Key", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        SaveApiKey(key);
-        await FetchModelsAsync(key);
+        await FetchModelsAsync(_activeApiKeys[0]);
     }
 
     private async Task FetchModelsAsync(string key)
@@ -567,11 +669,9 @@ public partial class MainWindow : FluentWindow
 
     private async void BtnConvert_Click(object sender, RoutedEventArgs e)
     {
-        var apiKey = TxtApiKey.Password.Trim();
-        if (string.IsNullOrEmpty(apiKey))
+        if (_activeApiKeys.Count == 0)
         {
-            System.Windows.MessageBox.Show("Vui lòng nhập Gemini API Key để tiếp tục.", "Thiếu API Key", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
-            TxtApiKey.Focus();
+            System.Windows.MessageBox.Show("Chưa có Gemini API Key. Hãy đặt file 'api_keys.txt' cạnh phần mềm (hoặc thiết lập biến môi trường GEMINI_API_KEY).", "Thiếu API Key", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -581,7 +681,19 @@ public partial class MainWindow : FluentWindow
             return;
         }
 
-        SaveApiKey(apiKey);
+        if (_fileItems.Count > MaxAllowedImages)
+        {
+            var confirm = System.Windows.MessageBox.Show(
+                $"Bạn đang chọn {_fileItems.Count} ảnh/trang. Để đảm bảo AI bóc tách đầy đủ 100% không bị quá tải token hoặc dừng giữa chừng, khuyến nghị tối đa {MaxAllowedImages} ảnh/lần.\n\nBạn có muốn tiếp tục xử lý toàn bộ {_fileItems.Count} ảnh này không?",
+                "Cảnh báo số lượng ảnh lớn",
+                System.Windows.MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+            if (confirm != System.Windows.MessageBoxResult.Yes)
+            {
+                return;
+            }
+        }
 
         var saveDlg = new SaveFileDialog
         {
@@ -598,39 +710,95 @@ public partial class MainWindow : FluentWindow
 
         var outputPath = saveDlg.FileName;
         var selectedModel = CmbModel.SelectedItem?.ToString() ?? "gemini-3.1-flash-lite";
+        var liveModelsList = CmbModel.Items.Cast<object>().Select(x => x?.ToString() ?? "").Where(x => !string.IsNullOrEmpty(x)).ToList();
         var filePathsSnapshot = _fileItems.Select(f => f.FilePath).ToList();
+        int optionFormat = Math.Max(0, CmbOptionFormat.SelectedIndex); // 0: Tab, 1: Bảng ẩn viền, 2: Dấu cách
+        int colorStyle = Math.Max(0, CmbColorStyle.SelectedIndex);     // 0: Màu như ảnh, 1: Đen trắng
+        string? deepSeekKey = (_activeDeepSeekKeys.Count > 0) ? _activeDeepSeekKeys[0] : null;
 
         // Cập nhật trạng thái UI
         BtnConvert.IsEnabled = false;
         PrgBar.Visibility = Visibility.Visible;
-        PrgBar.IsIndeterminate = true;
+        PrgBar.IsIndeterminate = false;
+        PrgBar.Value = 10;
+        TxtProgressPercent.Visibility = Visibility.Visible;
+        TxtProgressPercent.Text = "10%";
         BusyBadge.Visibility = Visibility.Visible;
-        TxtTitleBusy.Text = "Đang xử lý...";
+        TxtTitleBusy.Text = "Đang chuẩn bị (10%)...";
         TxtStatus.Text = "Đang tải và chuẩn bị dữ liệu hình ảnh...";
+
+        var keysToSend = _activeApiKeys;
+        var startKeyIdx = _keyRotationIndex % keysToSend.Count;
+
+        // Timer giả lập tiến độ mượt mà từ 35% -> 85% trong lúc AI đang suy nghĩ
+        var progressTimer = new System.Windows.Threading.DispatcherTimer();
+        progressTimer.Interval = TimeSpan.FromMilliseconds(400);
+        progressTimer.Tick += (s, e) =>
+        {
+            if (PrgBar.Value < 88)
+            {
+                PrgBar.Value += (PrgBar.Value < 60) ? 2 : 1;
+                TxtProgressPercent.Text = $"{(int)PrgBar.Value}%";
+            }
+        };
 
         try
         {
             var htmlOutput = await Task.Run(async () =>
             {
                 var images = GeminiOcrService.LoadImages(filePathsSnapshot);
+                Dispatcher.Invoke(() =>
+                {
+                    PrgBar.Value = 15;
+                    TxtProgressPercent.Text = "15%";
+                    TxtTitleBusy.Text = "Đang nạp ảnh (15%)...";
+                });
+
                 return await GeminiOcrService.ConvertToWordHtmlAsync(
-                    apiKey,
+                    keysToSend,
                     images,
                     selectedModel,
                     progress => Dispatcher.Invoke(() =>
                     {
                         TxtStatus.Text = progress;
-                        TxtTitleBusy.Text = progress;
-                    })
+                        // Trích xuất số % thực tế nếu có trong chuỗi progress
+                        var match = System.Text.RegularExpressions.Regex.Match(progress, @"\((\d+)%\)");
+                        if (match.Success && int.TryParse(match.Groups[1].Value, out int pct))
+                        {
+                            // Scale từ 15% đến 92%
+                            int scaledValue = 15 + (int)(pct * 0.77);
+                            PrgBar.Value = Math.Max(PrgBar.Value, scaledValue);
+                            TxtProgressPercent.Text = $"{scaledValue}%";
+                            TxtTitleBusy.Text = $"{progress}";
+                        }
+                        else
+                        {
+                            TxtTitleBusy.Text = $"{progress} ({(int)PrgBar.Value}%)";
+                        }
+                    }),
+                    liveModelsList,
+                    startKeyIdx,
+                    optionFormat,
+                    colorStyle,
+                    deepSeekKey
                 );
             });
 
-            TxtStatus.Text = "Đang lưu file ra ổ đĩa...";
+            PrgBar.Value = 96;
+            TxtProgressPercent.Text = "96%";
+
+            // Sau mỗi lần bóc tách thành công, xoay vòng sang Key kế tiếp cho lần sau
+            _keyRotationIndex = (startKeyIdx + 1) % keysToSend.Count;
+
+            TxtStatus.Text = "Đang ghi file Word ra đĩa...";
             // Ghi file với UTF-8 có BOM (Byte Order Mark) để Microsoft Word mở tự động 100% không hiện bảng hỏi File Conversion
             await File.WriteAllTextAsync(outputPath, htmlOutput, new System.Text.UTF8Encoding(true));
 
-            TxtStatus.Text = $"Hoàn tất: {Path.GetFileName(outputPath)}";
+            PrgBar.Value = 100;
+            TxtProgressPercent.Text = "100%";
+            TxtStatus.Text = $"Hoàn tất 100%: {Path.GetFileName(outputPath)}";
             PrgBar.Visibility = Visibility.Hidden;
+            TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;
 
             var res = System.Windows.MessageBox.Show(
@@ -655,8 +823,10 @@ public partial class MainWindow : FluentWindow
         }
         finally
         {
+            progressTimer?.Stop();
             BtnConvert.IsEnabled = true;
             PrgBar.Visibility = Visibility.Hidden;
+            TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;
         }
     }

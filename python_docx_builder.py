@@ -49,7 +49,7 @@ QUY TẮC BÓC TÁCH & CHUẨN HÓA LỖI OCR:
 6. Trả về DUY NHẤT một khối JSON hợp lệ.
 """
 
-def extract_questions_json(api_key: str, images: List[Image.Image], model_name: str = "gemini-2.5-flash") -> Dict[str, Any]:
+def extract_questions_json(api_key: str, images: List[Image.Image], model_name: str = "gemini-3.1-flash-lite") -> Dict[str, Any]:
     client = genai.Client(api_key=api_key)
     contents = [
         JSON_EXTRACT_PROMPT,

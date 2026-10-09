@@ -83,11 +83,11 @@ class App(tk.Tk):
         model_row = ttk.Frame(config_group)
         model_row.pack(fill="x", pady=4)
         ttk.Label(model_row, text="Mô hình Gemini:", width=15).pack(side="left")
-        self.model_combo = ttk.Combobox(model_row, values=["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-pro", "gemini-1.5-flash"], state="readonly")
-        self.model_combo.set("gemini-2.5-flash")
+        self.model_combo = ttk.Combobox(model_row, values=["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.7-flash", "gemini-3.8-flash"], state="readonly")
+        self.model_combo.set("gemini-3.1-flash-lite")
         self.model_combo.pack(side="left", padx=5)
 
-        ttk.Label(model_row, text="(Khuyên dùng gemini-2.5-flash: tốc độ cực nhanh & nhận diện MathML rất tốt)", foreground="#666").pack(side="left", padx=5)
+        ttk.Label(model_row, text="(Khuyên dùng gemini-3.1-flash-lite: nhẹ, phản hồi tức thì & nhận diện MathML rất tốt)", foreground="#666").pack(side="left", padx=5)
 
         # 2. File Selection Group
         file_group = ttk.LabelFrame(main_frame, text=" 2. Chọn hình ảnh đề thi / File PDF ", padding=10)

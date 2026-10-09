@@ -11,7 +11,7 @@ Tài liệu này là cẩm nang hướng dẫn dành cho **các AI Developer k�
   - Dự án C# WPF .NET 10.0: nằm trong thư mục `OcrWordApp/`.
   - Giao diện Liquid Glass 3.0 dựa trên WPF-UI (`Themes/LiquidGlass.xaml` và `Themes/AppStyles.xaml`).
   - Bản xuất bản phân phối:
-    - Thư mục thông thường: `AppPublish/OcrWordApp.exe`.
+    - Thư mục thông thường: `AppPublish/OCR_KazeHina.exe`.
     - Bản Portable độc lập (Self-Contained Single-File): `OCR_KazeHina_Portable/OCR_KazeHina.exe` (không cần cài bất cứ gì, chạy ngay trên máy khác).
 - **Module phụ (Python CLI / Fallback)**:
   - `prompt_template.py`, `ocr_converter.py`, `cli.py`, `app_gui.py`.
@@ -89,7 +89,7 @@ Khi đóng gói để người dùng chạy trên máy khác không có .NET:
   ```powershell
   dotnet publish OcrWordApp/OcrWordApp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o OCR_KazeHina_Portable
   ```
-- File đầu ra: Duy nhất `OCR_KazeHina_Portable/OCR_KazeHina.exe`. Xóa file `OcrWordApp.exe` trùng lặp và các file `.pdb`.
+- File đầu ra: Duy nhất `OCR_KazeHina_Portable/OCR_KazeHina.exe`. Xóa các file `.pdb` đi kèm.
 - File hướng dẫn người dùng non-tech kèm ảnh minh họa: Duy nhất `OCR_KazeHina_Portable/Huong_Dan_Su_Dung.doc` (không để file doc hướng dẫn ở thư mục gốc).
 - **YÊU CẦU CỦA USER**: TUYỆT ĐỐI KHÔNG TẠO FILE NÉN `.zip`, chỉ cần cập nhật trực tiếp thư mục `OCR_KazeHina_Portable/`.
 - **YÊU CẦU GIT/GITHUB**: TUYỆT ĐỐI CHỈ COMMIT VÀ PUSH LÊN GITHUB KHI USER YÊU CẦU CỤ THỂ. Không tự ý push trong quá trình phát triển thường ngày.

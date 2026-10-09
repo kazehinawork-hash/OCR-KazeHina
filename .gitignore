@@ -22,6 +22,10 @@ venv/
 .vs/
 *gemini_key*.txt
 .ocr_word_gemini_key.txt
+api_keys.txt
+
+# Command Code local tooling (taste/settings) - not part of the project
+.commandcode/
 
 # Temporary doc tests
 *Test_*.doc

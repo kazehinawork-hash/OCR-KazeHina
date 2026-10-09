@@ -1,0 +1,7 @@
+# Dependencies cho module Python (CLI / GUI fallback) của OCR KazeHina.
+# Cài đặt: pip install -r requirements.txt
+
+google-genai
+PyMuPDF
+Pillow
+python-docx

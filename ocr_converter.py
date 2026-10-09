@@ -58,7 +58,7 @@ def clean_html_output(raw_text: str) -> str:
 def convert_images_to_word_html(
     api_key: str,
     images: List[Image.Image],
-    model_name: str = "gemini-2.5-flash",
+    model_name: str = "gemini-3.1-flash-lite",
     progress_callback: Optional[Callable[[str], None]] = None,
 ) -> str:
     """Gửi các ảnh và system prompt tới Gemini để sinh ra file HTML chuẩn Word."""

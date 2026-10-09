@@ -10,7 +10,7 @@ def main():
     )
     parser.add_argument("inputs", nargs="+", help="Đường dẫn đến các file ảnh hoặc PDF cần xử lý")
     parser.add_argument("-o", "--output", default="output.doc", help="File đầu ra (.doc hoặc .html)")
-    parser.add_argument("-m", "--model", default="gemini-2.5-flash", help="Mô hình Gemini (mặc định: gemini-2.5-flash)")
+    parser.add_argument("-m", "--model", default="gemini-3.1-flash-lite", help="Mô hình Gemini (mặc định: gemini-3.1-flash-lite)")
     parser.add_argument("-k", "--key", default=None, help="Gemini API Key (hoặc thiết lập biến môi trường GEMINI_API_KEY)")
 
     args = parser.parse_args()
