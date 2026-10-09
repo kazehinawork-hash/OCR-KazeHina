@@ -91,10 +91,10 @@ public class GeminiOcrService
         List<string>? availableModels = null,
         int optionFormat = 0,
         int colorStyle = 0,
-        string? deepSeekKey = null,
+        IReadOnlyList<string>? deepSeekKeys = null,
         CancellationToken cancellationToken = default)
     {
-        return ConvertToWordHtmlAsync(new[] { apiKey }, images, modelName, onProgress, availableModels, 0, optionFormat, colorStyle, deepSeekKey, cancellationToken);
+        return ConvertToWordHtmlAsync(new[] { apiKey }, images, modelName, onProgress, availableModels, 0, optionFormat, colorStyle, deepSeekKeys, null, cancellationToken);
     }
 
     public static async Task<string> ConvertToWordHtmlAsync(
@@ -106,7 +106,8 @@ public class GeminiOcrService
         int currentKeyIndex = 0,
         int optionFormat = 0,
         int colorStyle = 0,
-        string? deepSeekKey = null,
+        IReadOnlyList<string>? deepSeekKeys = null,
+        System.Collections.Concurrent.ConcurrentBag<int>? skippedPages = null,
         CancellationToken cancellationToken = default)
     {
         if (apiKeys == null || apiKeys.Count == 0)
@@ -143,48 +144,26 @@ public class GeminiOcrService
 
                     onProgress?.Invoke($"Đang bóc tách trang {pageNum}/{totalPages}...");
 
-                    string pageHtml;
-                    try
-                    {
-                        var (html, _, _) = await ProcessSinglePageWithRetryAsync(
-                            apiKeys,
-                            images[index],
-                            pageNum,
-                            totalPages,
-                            modelName,
-                            startKeyForPage,
-                            availableModels,
-                            optionFormat,
-                            colorStyle,
-                            onProgress,
-                            cancellationToken
-                        );
-                        pageHtml = html;
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException && !string.IsNullOrWhiteSpace(deepSeekKey))
-                    {
-                        // DỰ PHÒNG: Gemini thất bại (RECITATION/lỗi liên tục) -> thử lại trang này bằng DeepSeek
-                        onProgress?.Invoke($"Trang {pageNum}: Gemini thất bại, chuyển sang DeepSeek dự phòng...");
-                        try
-                        {
-                            pageHtml = await DeepSeekOcrService.ConvertPageAsync(
-                                deepSeekKey!,
-                                images[index],
-                                PromptConstants.GetSystemPrompt(optionFormat, colorStyle),
-                                "deepseek-flash",
-                                pageNum,
-                                totalPages,
-                                onProgress,
-                                cancellationToken
-                            );
-                        }
-                        catch (Exception deepSeekEx)
-                        {
-                            throw new Exception($"Trang {pageNum}: cả Gemini lẫn DeepSeek đều thất bại.\n- Gemini: {ex.Message}\n- DeepSeek: {deepSeekEx.Message}");
-                        }
-                    }
+                    // DeepSeek là ưu tiên 1; Gemini dự phòng; nếu cả hai hỏng thì BỎ QUA trang và tiếp tục.
+                    var pageHtml = await TryProcessPageAsync(
+                        deepSeekKeys,
+                        apiKeys,
+                        images[index],
+                        pageNum,
+                        totalPages,
+                        modelName,
+                        startKeyForPage,
+                        availableModels,
+                        optionFormat,
+                        colorStyle,
+                        skippedPages,
+                        onProgress,
+                        cancellationToken);
 
-                    var bodyFragment = ExtractInnerBodyContent(pageHtml);
+                    string bodyFragment = (pageHtml != null)
+                        ? ExtractInnerBodyContent(pageHtml)
+                        : BuildFailedPageNote(pageNum);
+
                     if (!string.IsNullOrWhiteSpace(bodyFragment))
                     {
                         pageBodiesByIndex[index] = bodyFragment;
@@ -211,6 +190,82 @@ public class GeminiOcrService
 
         onProgress?.Invoke("Đang hợp nhất các trang vào tài liệu Microsoft Word hoàn chỉnh...");
         return AssembleMasterWordDocument(pageBodies, optionFormat);
+    }
+
+    /// <summary>
+    /// Xử lý 1 trang: ưu tiên DeepSeek (xoay nhiều key), dự phòng Gemini (xoay model/key).
+    /// Nếu cả hai đều thất bại -> trả về null (đánh dấu trang bị bỏ qua và tiếp tục).
+    /// </summary>
+    private static async Task<string?> TryProcessPageAsync(
+        IReadOnlyList<string>? deepSeekKeys,
+        IReadOnlyList<string> apiKeys,
+        ImagePayload image,
+        int pageNum,
+        int totalPages,
+        string modelName,
+        int startKeyForPage,
+        List<string>? availableModels,
+        int optionFormat,
+        int colorStyle,
+        System.Collections.Concurrent.ConcurrentBag<int>? skippedPages,
+        Action<string>? onProgress,
+        CancellationToken cancellationToken)
+    {
+        if (deepSeekKeys != null && deepSeekKeys.Count > 0)
+        {
+            try
+            {
+                return await DeepSeekOcrService.ConvertPageAsync(
+                    deepSeekKeys,
+                    image,
+                    PromptConstants.GetSystemPrompt(optionFormat, colorStyle),
+                    "deepseek-flash",
+                    pageNum,
+                    totalPages,
+                    onProgress,
+                    cancellationToken);
+            }
+            catch (Exception dsEx) when (dsEx is not OperationCanceledException)
+            {
+                onProgress?.Invoke($"Trang {pageNum}: DeepSeek thất bại, chuyển sang Gemini dự phòng...");
+                try
+                {
+                    var (html, _, _) = await ProcessSinglePageWithRetryAsync(
+                        apiKeys, image, pageNum, totalPages, modelName, startKeyForPage,
+                        availableModels, optionFormat, colorStyle, onProgress, cancellationToken);
+                    return html;
+                }
+                catch (Exception geminiEx) when (geminiEx is not OperationCanceledException)
+                {
+                    SkipPage(skippedPages, pageNum, onProgress);
+                    return null;
+                }
+            }
+        }
+
+        try
+        {
+            var (html, _, _) = await ProcessSinglePageWithRetryAsync(
+                apiKeys, image, pageNum, totalPages, modelName, startKeyForPage,
+                availableModels, optionFormat, colorStyle, onProgress, cancellationToken);
+            return html;
+        }
+        catch (Exception geminiEx) when (geminiEx is not OperationCanceledException)
+        {
+            SkipPage(skippedPages, pageNum, onProgress);
+            return null;
+        }
+    }
+
+    private static void SkipPage(System.Collections.Concurrent.ConcurrentBag<int>? skippedPages, int pageNum, Action<string>? onProgress)
+    {
+        skippedPages?.Add(pageNum);
+        onProgress?.Invoke($"Trang {pageNum}: cả hai API đều thất bại -> bỏ qua trang này, tiếp tục các trang còn lại...");
+    }
+
+    private static string BuildFailedPageNote(int pageNum)
+    {
+        return $"<div class=\"avoid-break\" style=\"margin: 6pt 0;\"><p style=\"text-align: left; color: #b91c1c; font-style: italic;\">[Trang {pageNum}: không bóc tách được (bị chặn hoặc lỗi API) — vui lòng xử lý lại trang này.]</p></div>";
     }
 
     /// <summary>
@@ -464,6 +519,7 @@ public class GeminiOcrService
         sb.AppendLine("  body { font-family: \"Times New Roman\", Times, serif; font-size: 12pt; line-height: 1.25; color: #000000; text-align: left; }");
         sb.AppendLine("  p { margin: 0 0 3pt 0; text-align: left; }");
         sb.AppendLine("  td, div { text-align: left; }");
+        sb.AppendLine("  math { font-family: \"Cambria Math\", serif; font-size: 14pt; }");
         sb.AppendLine("</style>");
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");

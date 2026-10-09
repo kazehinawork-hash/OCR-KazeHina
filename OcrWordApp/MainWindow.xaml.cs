@@ -52,6 +52,7 @@ public partial class MainWindow : FluentWindow
     private readonly List<string> _activeApiKeys = new();
     private readonly List<string> _activeDeepSeekKeys = new();
     private int _keyRotationIndex = 0;
+    private CancellationTokenSource? _conversionCts;
 
     private readonly ObservableCollection<FileItem> _fileItems = new();
 
@@ -90,21 +91,12 @@ public partial class MainWindow : FluentWindow
         }
     }
 
-    public const int MaxAllowedImages = 5;
-
     private void UpdateFileCountBadge()
     {
         if (TxtFileCountBadge != null)
         {
-            TxtFileCountBadge.Text = $"{_fileItems.Count}/{MaxAllowedImages} ảnh (Tối đa {MaxAllowedImages} ảnh/lần)";
-            if (_fileItems.Count >= MaxAllowedImages)
-            {
-                TxtFileCountBadge.Foreground = System.Windows.Media.Brushes.OrangeRed;
-            }
-            else
-            {
-                TxtFileCountBadge.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x38, 0xBD, 0xF8));
-            }
+            TxtFileCountBadge.Text = $"{_fileItems.Count} ảnh đã chọn";
+            TxtFileCountBadge.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x38, 0xBD, 0xF8));
         }
     }
 
@@ -119,17 +111,6 @@ public partial class MainWindow : FluentWindow
 
     private void AddFileItem(string path)
     {
-        if (_fileItems.Count >= MaxAllowedImages)
-        {
-            System.Windows.MessageBox.Show(
-                $"Khuyến nghị tối đa {MaxAllowedImages} ảnh/trang cho mỗi lần chuyển đổi để đảm bảo AI bóc tách đầy đủ 100% không bị quá tải hoặc rớt câu.\n\nBạn hãy bấm 'Bắt đầu' để xuất tài liệu hiện tại ra Word trước, sau đó tiếp tục xử lý các ảnh tiếp theo nhé!",
-                "Đã đạt giới hạn ảnh tối đa",
-                System.Windows.MessageBoxButton.OK,
-                MessageBoxImage.Information
-            );
-            return;
-        }
-
         if (_fileItems.Any(f => f.FilePath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             return;
 
@@ -667,6 +648,12 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    private void BtnCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _conversionCts?.Cancel();
+        TxtStatus.Text = "Đang hủy chuyển đổi...";
+    }
+
     private async void BtnConvert_Click(object sender, RoutedEventArgs e)
     {
         if (_activeApiKeys.Count == 0)
@@ -679,20 +666,6 @@ public partial class MainWindow : FluentWindow
         {
             System.Windows.MessageBox.Show("Vui lòng thêm ít nhất một ảnh hoặc file PDF để chuyển đổi.", "Chưa chọn file", System.Windows.MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
-        }
-
-        if (_fileItems.Count > MaxAllowedImages)
-        {
-            var confirm = System.Windows.MessageBox.Show(
-                $"Bạn đang chọn {_fileItems.Count} ảnh/trang. Để đảm bảo AI bóc tách đầy đủ 100% không bị quá tải token hoặc dừng giữa chừng, khuyến nghị tối đa {MaxAllowedImages} ảnh/lần.\n\nBạn có muốn tiếp tục xử lý toàn bộ {_fileItems.Count} ảnh này không?",
-                "Cảnh báo số lượng ảnh lớn",
-                System.Windows.MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
-            if (confirm != System.Windows.MessageBoxResult.Yes)
-            {
-                return;
-            }
         }
 
         var saveDlg = new SaveFileDialog
@@ -714,10 +687,19 @@ public partial class MainWindow : FluentWindow
         var filePathsSnapshot = _fileItems.Select(f => f.FilePath).ToList();
         int optionFormat = Math.Max(0, CmbOptionFormat.SelectedIndex); // 0: Tab, 1: Bảng ẩn viền, 2: Dấu cách
         int colorStyle = Math.Max(0, CmbColorStyle.SelectedIndex);     // 0: Màu như ảnh, 1: Đen trắng
-        string? deepSeekKey = (_activeDeepSeekKeys.Count > 0) ? _activeDeepSeekKeys[0] : null;
+        var deepSeekKeys = _activeDeepSeekKeys;
+
+        // Thu thập các trang bị bỏ qua (khi cả DeepSeek lẫn Gemini đều thất bại)
+        var skippedPages = new System.Collections.Concurrent.ConcurrentBag<int>();
+
+        // Token để hủy giữa chừng
+        _conversionCts?.Dispose();
+        _conversionCts = new CancellationTokenSource();
+        var conversionToken = _conversionCts.Token;
 
         // Cập nhật trạng thái UI
         BtnConvert.IsEnabled = false;
+        BtnCancel.Visibility = Visibility.Visible;
         PrgBar.Visibility = Visibility.Visible;
         PrgBar.IsIndeterminate = false;
         PrgBar.Value = 10;
@@ -780,7 +762,9 @@ public partial class MainWindow : FluentWindow
                     startKeyIdx,
                     optionFormat,
                     colorStyle,
-                    deepSeekKey
+                    deepSeekKeys,
+                    skippedPages,
+                    conversionToken
                 );
             });
 
@@ -801,8 +785,12 @@ public partial class MainWindow : FluentWindow
             TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;
 
+            var skipNote = (skippedPages.Count > 0)
+                ? $"\n\n⚠️ Có {skippedPages.Count} trang bị bỏ qua (không bóc tách được): trang {string.Join(", ", skippedPages.OrderBy(x => x))}. Các trang này đã được ghi chú đỏ trong file."
+                : "";
+
             var res = System.Windows.MessageBox.Show(
-                $"Chuyển đổi thành công!\n\nTập tin đã lưu tại:\n{outputPath}\n\nBạn có muốn mở ngay tập tin này bằng Microsoft Word không?",
+                $"Chuyển đổi thành công!\n\nTập tin đã lưu tại:\n{outputPath}{skipNote}\n\nBạn có muốn mở ngay tập tin này bằng Microsoft Word không?",
                 "Hoàn tất chuyển đổi",
                 System.Windows.MessageBoxButton.YesNo,
                 MessageBoxImage.Information);
@@ -816,6 +804,11 @@ public partial class MainWindow : FluentWindow
                 });
             }
         }
+        catch (OperationCanceledException)
+        {
+            TxtStatus.Text = "Đã hủy chuyển đổi.";
+            System.Windows.MessageBox.Show("Đã hủy chuyển đổi.", "Đã hủy", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
+        }
         catch (Exception ex)
         {
             TxtStatus.Text = "Có lỗi xảy ra trong quá trình xử lý.";
@@ -825,6 +818,9 @@ public partial class MainWindow : FluentWindow
         {
             progressTimer?.Stop();
             BtnConvert.IsEnabled = true;
+            BtnCancel.Visibility = Visibility.Collapsed;
+            _conversionCts?.Dispose();
+            _conversionCts = null;
             PrgBar.Visibility = Visibility.Hidden;
             TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;

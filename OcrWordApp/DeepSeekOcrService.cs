@@ -6,15 +6,15 @@ using System.Text.Json;
 namespace OcrWordApp;
 
 /// <summary>
-/// Dịch vụ OCR dự phòng dùng DeepSeek (API tương thích OpenAI).
-/// Được gọi tự động khi Gemini thất bại (bộ lọc bản quyền RECITATION hoặc lỗi liên tục).
+/// Dịch vụ OCR dùng DeepSeek (API tương thích OpenAI) - lựa chọn ưu tiên số 1.
+/// Tự xoay vòng nhiều API Key và thử lại khi gặp lỗi.
 /// </summary>
 public class DeepSeekOcrService
 {
     private static readonly HttpClient HttpClient = new HttpClient();
 
     public static async Task<string> ConvertPageAsync(
-        string apiKey,
+        IReadOnlyList<string> apiKeys,
         GeminiOcrService.ImagePayload image,
         string systemPrompt,
         string modelName = "deepseek-flash",
@@ -23,8 +23,79 @@ public class DeepSeekOcrService
         Action<string>? onProgress = null,
         CancellationToken cancellationToken = default)
     {
-        var dataUrl = BuildImageDataUrl(image);
+        if (apiKeys == null || apiKeys.Count == 0)
+        {
+            throw new InvalidOperationException("Chưa có DeepSeek API Key.");
+        }
 
+        var dataUrl = BuildImageDataUrl(image);
+        var requestBody = BuildRequestBody(systemPrompt, dataUrl, modelName, pageNum, totalPages);
+
+        int maxAttempts = Math.Max(1, apiKeys.Count) * 2;
+        Exception? lastError = null;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int keyIndex = (attempt - 1) % apiKeys.Count;
+            var key = apiKeys[keyIndex];
+            var keyBadge = (apiKeys.Count > 1) ? $" [Key {keyIndex + 1}/{apiKeys.Count}]" : "";
+
+            onProgress?.Invoke(attempt == 1
+                ? $"Trang {pageNum}: đang xử lý bằng DeepSeek ({modelName}){keyBadge}..."
+                : $"Trang {pageNum}: DeepSeek thử lại{keyBadge} (lần {attempt}/{maxAttempts})...");
+
+            try
+            {
+                var text = await CallOnceAsync(key, requestBody, pageNum, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return GeminiOcrService.CleanHtmlOutput(text);
+                }
+                lastError = new Exception($"DeepSeek trả về nội dung rỗng ở Trang {pageNum}.");
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                lastError = ex;
+            }
+
+            await Task.Delay(600, cancellationToken);
+        }
+
+        throw lastError ?? new Exception($"DeepSeek thất bại ở Trang {pageNum}.");
+    }
+
+    private static async Task<string> CallOnceAsync(string apiKey, string requestBodyJson, int pageNum, CancellationToken cancellationToken)
+    {
+        using var reqMsg = new HttpRequestMessage(HttpMethod.Post, "https://api.deepseek.com/chat/completions")
+        {
+            Content = new StringContent(requestBodyJson, Encoding.UTF8, "application/json")
+        };
+        reqMsg.Headers.Add("Authorization", $"Bearer {apiKey}");
+
+        using var response = await HttpClient.SendAsync(reqMsg, cancellationToken);
+        var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"DeepSeek API lỗi ở Trang {pageNum} ({(int)response.StatusCode}):\n{responseString}");
+        }
+
+        using var doc = JsonDocument.Parse(responseString);
+        if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+        {
+            var message = choices[0].GetProperty("message");
+            if (message.TryGetProperty("content", out var contentProp))
+            {
+                return contentProp.GetString() ?? "";
+            }
+        }
+        return "";
+    }
+
+    private static string BuildRequestBody(string systemPrompt, string dataUrl, string modelName, int pageNum, int totalPages)
+    {
         var userContent = new List<object>
         {
             new { type = "text", text = $"\n[ĐÂY LÀ TRANG {pageNum}/{totalPages} CỦA BỘ ĐỀ THI. BẮT BUỘC BÓC TÁCH ĐẦY ĐỦ 100% TẤT CẢ CÁC CÂU CỦA TRANG NÀY, KHÔNG ĐƯỢC BỎ SÓT BẤT KỲ CÂU NÀO!]" },
@@ -44,39 +115,7 @@ public class DeepSeekOcrService
             stream = false
         };
 
-        onProgress?.Invoke($"Trang {pageNum}: Gemini thất bại, đang thử lại bằng DeepSeek ({modelName})...");
-
-        using var reqMsg = new HttpRequestMessage(HttpMethod.Post, "https://api.deepseek.com/chat/completions")
-        {
-            Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-        };
-        reqMsg.Headers.Add("Authorization", $"Bearer {apiKey}");
-
-        using var response = await HttpClient.SendAsync(reqMsg, cancellationToken);
-        var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"Lỗi từ DeepSeek API ở Trang {pageNum} ({(int)response.StatusCode}):\n{responseString}");
-        }
-
-        using var doc = JsonDocument.Parse(responseString);
-        string text = "";
-        if (doc.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
-        {
-            var message = choices[0].GetProperty("message");
-            if (message.TryGetProperty("content", out var contentProp))
-            {
-                text = contentProp.GetString() ?? "";
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            throw new Exception($"DeepSeek trả về nội dung rỗng ở Trang {pageNum}.");
-        }
-
-        return GeminiOcrService.CleanHtmlOutput(text);
+        return JsonSerializer.Serialize(requestBody);
     }
 
     /// <summary>

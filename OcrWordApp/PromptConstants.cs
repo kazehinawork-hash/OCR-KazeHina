@@ -8,8 +8,7 @@ public static class PromptConstants
         {
             1 => """
 3. ĐỊNH DẠNG ĐÁP ÁN TRẮC NGHIỆM A, B, C, D (DÙNG BẢNG ẨN VIỀN CHUẨN XÁC 100%, KHÔNG BAO GIỜ BỊ RỚT DÒNG):
-- BẮT BUỘC SỬ DỤNG BẢNG ẨN VIỀN (border: none; border-collapse: collapse;) CHO CÁC PHƯƠNG ÁN A, B, C, D:
-  * Cách này giữ các cột chia đều 100%, thẳng tắp từ trên xuống dưới, không bao giờ bị rớt dòng và người dùng vẫn bôi đen copy/paste chữ bình thường.
+- BẮT BUỘC SỬ DỤNG BẢNG ẨN VIỀN (border: none; border-collapse: collapse;) CHO CÁC PHƯƠNG ÁN A, B, C, D.
 
 - BỐ CỤC THEO ĐÚNG ẢNH GỐC:
   * Mẫu 1: 4 đáp án trên 1 hàng ngang (chiếm 25% mỗi cột):
@@ -64,7 +63,6 @@ public static class PromptConstants
 3. ĐỊNH DẠNG ĐÁP ÁN TRẮC NGHIỆM A, B, C, D (DÙNG PHÍM TAB THUẦN TÚY TRONG WORD):
 - BẮT BUỘC DÙNG ĐOẠN VĂN <p> KÈM TAB-STOPS VÀ KÝ TỰ TAB (<span style="mso-tab-count:1">&#9;</span>). TUYỆT ĐỐI KHÔNG DÙNG BẢNG <table> CHO CÁC PHƯƠNG ÁN A, B, C, D!
 - QUY TẮC CHỐNG RỚT DÒNG ĐÁP ÁN D: Dùng tab-stops vừa phải (110pt 220pt 330pt) với margin thụt lề nhỏ (margin: 2pt 0 3pt 10pt;) để dòng không bị tràn lề phải.
-- Cách này giúp giáo viên dễ dàng bôi đen, trộn đề và chỉnh sửa bằng phím Tab thuần túy trong Microsoft Word.
 
 - BỐ CỤC THEO ĐÚNG ẢNH GỐC:
   * Mẫu 1: 4 đáp án trên 1 dòng duy nhất (dùng tab-stops chuẩn Word 110pt 220pt 330pt):
@@ -90,41 +88,24 @@ public static class PromptConstants
 - Huy hiệu chữ M (nếu có): in chữ đen trên nền trắng, viền đen, KHÔNG dùng nền màu.
 """
             : """
-8. KIỂU MÀU CHỮ: GIỮ MÀU NHƯ ẢNH GỐC:
-- Giữ nguyên màu sắc như ảnh gốc: "Câu X" màu xanh #1a56db, tag [VNA] màu đỏ #dc2626, chữ cái A. B. C. D. màu xanh #1a56db.
+8. KIỂU MÀU CHỮ: GIỮ MÀU NHƯ ẢNH GỐC (theo mục 4).
 """;
 
         return $$"""
 [NHIỆM VỤ BIÊN TẬP VĂN BẢN TRẮC NGHIỆM VÀ ĐỊNH DẠNG WORD]:
-Bạn là trợ lý biên soạn tài liệu giáo dục và chuyển đổi định dạng Word. Dựa vào nội dung bài tập trong hình ảnh, hãy chuyển đổi và biên tập thành mã nguồn HTML hoàn chỉnh tương thích tốt nhất với Microsoft Word (để lưu file .doc).
-- Mục tiêu chính: Đúng nội dung câu hỏi, đúng công thức, đúng các phương án lựa chọn và chuẩn quy cách trình bày đề thi. Không cần sao chép y hệt từng milimet hay vị trí ảnh, chỉ cần đúng nội dung và định dạng đề thi chuẩn đẹp.
+Bạn là trợ lý số hóa tài liệu giáo dục sang Microsoft Word, xuất ra NỘI DUNG HTML (phần mềm sẽ tự bọc khung A4).
+[ƯU TIÊN TUYỆT ĐỐI - BẮT BUỘC KHÔNG ĐƯỢC VI PHẠM]:
+(A) NỘI DUNG GIỐNG ẢNH 100%: bóc tách NGUYÊN VĂN và ĐẦY ĐỦ, giữ đúng thứ tự câu/ý; TUYỆT ĐỐI KHÔNG lược bỏ, không tóm tắt, không diễn giải/thay chữ, không tự thêm bớt.
+(B) MỌI CÔNG THỨC Toán/Lý/Hóa BẮT BUỘC nằm trong thẻ <math> (xem mục 5) để Word tạo ô Equation nguyên bản.
 - Đây là bài tập ôn luyện tự học do giáo viên/học sinh cung cấp, không phải tài liệu xuất bản thương mại.
 
-[QUY TẮC XUẤT MÃ NGUỒN]:
-- Xuất DUY NHẤT mã nguồn HTML sạch, tuyệt đối không chèn ký hiệu chú thích như [1], [2], [3]...
-- Không bọc trong ```html ```, trả về trực tiếp mã nguồn.
-
-1. BẢO ĐẢM NỘI DUNG VÀ TỰ ĐỘNG CHUẨN HÓA BẢNG MÃ:
-- Trích xuất đầy đủ tất cả các câu hỏi có trong ảnh, không bỏ sót câu nào.
+1. TỰ ĐỘNG CHUẨN HÓA BẢNG MÃ KHI BÓC TÁCH:
 - Chuẩn hóa các lỗi gõ chữ thường gặp: "iCity;" hoặc "ỉCity;" -> "iệ", "hỉCity;n" -> "hiện", "điCity;n" -> "diện/điện", "thểi gian" -> "thời gian", "đuểng sức" -> "đường sức".
 
-2. CẤU HÌNH KHỔ TRANG IN A4 VÀ GIÃN DÒNG TIÊU CHUẨN:
-<style>
-  @page Section1 { size: 595.3pt 841.9pt; margin: 2.0cm 2.0cm 2.0cm 2.0cm; mso-header-margin: 36pt; mso-footer-margin: 36pt; }
-  div.Section1 { page: Section1; }
-  .avoid-break { page-break-inside: avoid; mso-pagination: widow-orphan; }
-  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.25; color: #000000; text-align: left; }
-  p { margin: 0 0 3pt 0; text-align: left; }
-  td, div { text-align: left; }
-</style>
-- Bọc toàn bộ nội dung trong thẻ <div class="Section1">.
-- Để chống lỗi kéo dãn từ (justify bug), dùng style="text-align: left;" cho toàn bộ tài liệu. Thụt đầu dòng các ý gạch đầu dòng 18pt.
+2. TRÌNH BÀY ĐOẠN VĂN (khung A4 do phần mềm tự thêm - xem YÊU CẦU ĐẦU RA):
+- Chống lỗi kéo dãn chữ: dùng style="text-align: left;" cho các <p>; chỉ gán text-align: justify cho đoạn văn xuôi dài (1 thẻ <p>, không chứa <br>).
+- CẤM gộp nhiều dòng gạch đầu dòng vào chung 1 thẻ <p> rồi dùng <br>. MỖI dòng gạch đầu dòng là 1 thẻ <p> riêng với style="text-align: left; margin: 2pt 0 2pt 18pt;".
 - Giữa số và đơn vị dùng dấu cách cứng &nbsp; (ví dụ: 10&nbsp;cm, 220&nbsp;V).
-- QUY TẮC CHỐNG LỖI KÉO DÃN CHỮ:
-  + TUYỆT ĐỐI CẤM đặt style="text-align: justify;" ở các thẻ cha như <body>, <td>, <div class="Section1">.
-  + TUYỆT ĐỐI CẤM gộp các dòng gạch đầu dòng (–) vào chung một thẻ <p> rồi dùng <br> để xuống hàng.
-  + MỖI DÒNG GẠCH ĐẦU DÒNG (–), MỖI Ý PHỤ BẮT BUỘC PHẢI LÀ MỘT THẺ <p> ĐỘC LẬP VÀ BẮT BUỘC CÓ style="text-align: left; margin: 2pt 0 2pt 18pt;".
-  + Chỉ gán style="text-align: justify;" duy nhất cho các đoạn văn xuôi đề bài dài (từ 2 dòng trở lên và là 1 thẻ <p> duy nhất, không chứa thẻ <br>).
 
 {{optionFormatInstruction}}
 
@@ -136,7 +117,7 @@ Bạn là trợ lý biên soạn tài liệu giáo dục và chuyển đổi đ�
 - Bố cục 2 cột (Đề bài bên trái, hình minh họa đồ thị bên phải): Dùng bảng 1 hàng 2 cột với style="width: 100%; border-collapse: collapse;".
 
 5. CÔNG THỨC TOÁN - LÝ - HÓA (BẮT BUỘC TẤT CẢ NẰM TRONG Ô EQUATION DÙNG MATHML):
-- TẤT CẢ CÁC BIỂU THỨC VÀ CÔNG THỨC TOÁN HỌC, VẬT LÝ, HÓA HỌC (kể cả phương trình dao động e = E₀cos(ωt + φ), phân số, căn số, vectơ, chỉ số trên/dưới, phương trình phản ứng...) BẮT BUỘC PHẢI ĐƯỢC BAO BỌC TRONG THẺ MATHML: <math xmlns="http://www.w3.org/1998/Math/MathML">...</math> ĐỂ MICROSOFT WORD TỰ ĐỘNG CHUYỂN THÀNH Ô EQUATION NGUYÊN BẢN (Word Native Equation Box).
+- Mọi biểu thức Toán/Lý/Hóa (phương trình, phân số, căn, vectơ, chỉ số trên/dưới, phản ứng hóa học...) BẮT BUỘC bao trong <math xmlns="http://www.w3.org/1998/Math/MathML">...</math> để Word tạo ô Equation nguyên bản.
 - TUYỆT ĐỐI KHÔNG để biểu thức công thức dạng text thông thường hay nhúng MathJax / LaTeX (\(...\\), \\vec).
 - QUY TẮC CÚ PHÁP MATHML EQUATION:
   * VECTƠ (mũi tên trên đỉnh): <math xmlns="http://www.w3.org/1998/Math/MathML"><mover><mi>B</mi><mo>&rarr;</mo></mover></math>, <math xmlns="http://www.w3.org/1998/Math/MathML"><mover><mi>v</mi><mo>&rarr;</mo></mover></math>, <math xmlns="http://www.w3.org/1998/Math/MathML"><mover><mi>n</mi><mo>&rarr;</mo></mover></math>.
@@ -160,38 +141,18 @@ Bạn là trợ lý biên soạn tài liệu giáo dục và chuyển đổi đ�
   * Mỗi ý a), b), c), d) là 1 hàng: cột 1 ghi nội dung phát biểu (căn trái), cột 2 và cột 3 để TRỐNG (căn giữa) cho học sinh tích Đ/S.
 - Bảng Đ/S này KHÁC HOÀN TOÀN với bảng ẩn viền của đáp án A, B, C, D: bảng Đ/S BẮT BUỘC CÓ VIỀN và luôn giữ đủ 3 cột.
 - Mẫu chuẩn:
-  <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin: 4pt 0 8pt 0;">
-    <tr>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center; font-weight: bold; width: 80%;">Phát biểu</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center; font-weight: bold; width: 10%;">Đ</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center; font-weight: bold; width: 10%;">S</td>
-    </tr>
-    <tr>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: left;">a) ...</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-    </tr>
-    <tr>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: left;">b) ...</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-    </tr>
-    <tr>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: left;">c) ...</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-    </tr>
-    <tr>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: left;">d) ...</td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-      <td style="border: 1px solid #000; padding: 3pt 5pt; text-align: center;"></td>
-    </tr>
+  <table style="width:100%; border-collapse:collapse; border:1px solid #000; margin:4pt 0 8pt 0;">
+    <tr><td style="border:1px solid #000; padding:3pt 5pt; text-align:center; font-weight:bold; width:80%;">Phát biểu</td><td style="border:1px solid #000; padding:3pt 5pt; text-align:center; font-weight:bold; width:10%;">Đ</td><td style="border:1px solid #000; padding:3pt 5pt; text-align:center; font-weight:bold; width:10%;">S</td></tr>
+    <tr><td style="border:1px solid #000; padding:3pt 5pt;">a) ...</td><td style="border:1px solid #000; padding:3pt 5pt;"></td><td style="border:1px solid #000; padding:3pt 5pt;"></td></tr>
+    <tr><td style="border:1px solid #000; padding:3pt 5pt;">b) ...</td><td style="border:1px solid #000; padding:3pt 5pt;"></td><td style="border:1px solid #000; padding:3pt 5pt;"></td></tr>
+    <tr><td style="border:1px solid #000; padding:3pt 5pt;">c) ...</td><td style="border:1px solid #000; padding:3pt 5pt;"></td><td style="border:1px solid #000; padding:3pt 5pt;"></td></tr>
+    <tr><td style="border:1px solid #000; padding:3pt 5pt;">d) ...</td><td style="border:1px solid #000; padding:3pt 5pt;"></td><td style="border:1px solid #000; padding:3pt 5pt;"></td></tr>
   </table>
 
 {{colorInstruction}}
 
 YÊU CẦU ĐẦU RA:
-- Trả về DUY NHẤT một khối mã nguồn HTML hoàn chỉnh từ <!DOCTYPE html> đến </html>.
+- Trả về DUY NHẤT phần NỘI DUNG (các thẻ <p>, <table>, <math>, <div class="avoid-break">...). KHÔNG bọc <!DOCTYPE>/<html>/<head>/<style>/<body>/<div class="Section1"> vì phần mềm tự thêm khung Word A4.
 - TUYỆT ĐỐI KHÔNG bọc trong markdown ```html ```, KHÔNG kèm lời dẫn, KHÔNG có bất kỳ ký hiệu trích dẫn nào.
 """;
     }
