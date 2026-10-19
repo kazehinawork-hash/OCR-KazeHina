@@ -387,73 +387,51 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ui:Button">
-                    <Grid x:Name="RootBtnGrid" RenderTransformOrigin="0.5,0.5">
-                        <Grid.RenderTransform>
-                            <ScaleTransform x:Name="BtnScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
-                        </Grid.RenderTransform>
-
-                        <!-- Glow thở đa tầng xung quanh viền nút -->
-                        <Border x:Name="GlowBorder" CornerRadius="10" Margin="-2"
-                                Background="{StaticResource ButtonNeonGradientHoverBrush}"
-                                Opacity="0">
-                            <Border.Effect>
-                                <BlurEffect x:Name="GlowBlur" Radius="12" KernelType="Gaussian"/>
-                            </Border.Effect>
-                        </Border>
-
+                    <Grid x:Name="RootBtnGrid">
+                        <!-- Nền thở chính của nút: giữ kích thước cố định, chỉ đổi nhịp sáng tối của màu -->
                         <Border x:Name="OuterBorder"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1" CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Grid>
+                                <!-- Lớp màu thở nội bộ (Internal Color Breath Layer) -->
+                                <Border x:Name="PulseColorLayer" CornerRadius="7" Opacity="0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FF00F0FF" Offset="0.0"/>
+                                            <GradientStop Color="#FFA855F7" Offset="0.5"/>
+                                            <GradientStop Color="#FFEC4899" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <!-- Hiệu ứng "Thở" (Breathing / Pulse Glow) khi rê chuột vào nhưng chưa bấm -->
+                        <!-- Hiệu ứng "Thở màu" (Color Breathing): kích thước nút giữ nguyên 100%, chỉ màu sắc bên trong đổi nhịp sáng tối -->
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="OuterBorder" Property="Background" Value="{StaticResource ButtonNeonGradientHoverBrush}"/>
-                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#FFFFFF"/>
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#A000F0FF"/>
                             <Trigger.EnterActions>
-                                <BeginStoryboard x:Name="BreathingStoryboard">
+                                <BeginStoryboard x:Name="BreathingColorStoryboard">
                                     <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                        <!-- Hào quang phát sáng phập phồng (thở) nhịp nhàng -->
-                                        <DoubleAnimation Storyboard.TargetName="GlowBorder"
+                                        <DoubleAnimation Storyboard.TargetName="PulseColorLayer"
                                                          Storyboard.TargetProperty="Opacity"
-                                                         From="0.45" To="0.95"
-                                                         Duration="0:0:0.9"
-                                                         DecelerationRatio="0.5" AccelerationRatio="0.5"/>
-                                        <DoubleAnimation Storyboard.TargetName="GlowBlur"
-                                                         Storyboard.TargetProperty="Radius"
-                                                         From="10" To="22"
-                                                         Duration="0:0:0.9"
-                                                         DecelerationRatio="0.5" AccelerationRatio="0.5"/>
-                                        <!-- Nhịp thở cơ học co giãn nhẹ 1.0 -> 1.025 tạo cảm giác sống động -->
-                                        <DoubleAnimation Storyboard.TargetName="BtnScaleTransform"
-                                                         Storyboard.TargetProperty="ScaleX"
-                                                         From="1.0" To="1.025"
-                                                         Duration="0:0:0.9"
-                                                         DecelerationRatio="0.5" AccelerationRatio="0.5"/>
-                                        <DoubleAnimation Storyboard.TargetName="BtnScaleTransform"
-                                                         Storyboard.TargetProperty="ScaleY"
-                                                         From="1.0" To="1.025"
-                                                         Duration="0:0:0.9"
+                                                         From="0.15" To="0.85"
+                                                         Duration="0:0:1.0"
                                                          DecelerationRatio="0.5" AccelerationRatio="0.5"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <StopStoryboard BeginStoryboardName="BreathingStoryboard"/>
+                                <StopStoryboard BeginStoryboardName="BreathingColorStoryboard"/>
                             </Trigger.ExitActions>
                         </Trigger>
                         <!-- Khi nhấn chuột xuống (Click) -->
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="RootBtnGrid" Property="RenderTransform">
-                                <Setter.Value>
-                                    <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
-                                </Setter.Value>
-                            </Setter>
-                            <Setter TargetName="OuterBorder" Property="Opacity" Value="0.85"/>
+                            <Setter TargetName="OuterBorder" Property="Opacity" Value="0.8"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
