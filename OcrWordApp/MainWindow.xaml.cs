@@ -972,24 +972,8 @@ public partial class MainWindow : FluentWindow
             TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;
 
-            var skipNote = (skippedPages.Count > 0)
-                ? $"\n\n⚠️ Có {skippedPages.Count} trang bị bỏ qua (không bóc tách được): trang {string.Join(", ", skippedPages.OrderBy(x => x))}. Các trang này đã được ghi chú đỏ trong file."
-                : "";
-
-            var res = System.Windows.MessageBox.Show(
-                $"Chuyển đổi thành công!\n\nTập tin đã lưu tại:\n{outputPath}{skipNote}\n\nBạn có muốn mở ngay tập tin này bằng Microsoft Word không?",
-                "Hoàn tất chuyển đổi",
-                System.Windows.MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
-
-            if (res == System.Windows.MessageBoxResult.Yes)
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = outputPath,
-                    UseShellExecute = true
-                });
-            }
+            _lastConvertedOutputPath = outputPath;
+            ShowSuccessModal(outputPath, skippedPages);
         }
         catch (OperationCanceledException)
         {
@@ -1013,6 +997,55 @@ public partial class MainWindow : FluentWindow
             BusyBadge.Visibility = Visibility.Collapsed;
         }
     }
+
+    #region Liquid Glass Success Modal Dialog Controls
+    private string? _lastConvertedOutputPath;
+
+    private void ShowSuccessModal(string outputPath, System.Collections.Concurrent.ConcurrentBag<int> skippedPages)
+    {
+        if (SuccessModalOverlay == null) return;
+
+        TxtModalOutputPath.Text = outputPath;
+
+        if (skippedPages.Count > 0)
+        {
+            TxtModalSkipNote.Text = $"⚠️ Có {skippedPages.Count} trang bị bỏ qua: trang {string.Join(", ", skippedPages.OrderBy(x => x))}.";
+            TxtModalSkipNote.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TxtModalSkipNote.Visibility = Visibility.Collapsed;
+        }
+
+        SuccessModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void BtnModalOpenWord_Click(object sender, RoutedEventArgs e)
+    {
+        SuccessModalOverlay.Visibility = Visibility.Collapsed;
+
+        if (!string.IsNullOrEmpty(_lastConvertedOutputPath) && File.Exists(_lastConvertedOutputPath))
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = _lastConvertedOutputPath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                TxtStatus.Text = $"Không thể tự mở file: {ex.Message}";
+            }
+        }
+    }
+
+    private void BtnModalClose_Click(object sender, RoutedEventArgs e)
+    {
+        SuccessModalOverlay.Visibility = Visibility.Collapsed;
+    }
+    #endregion
 
     private void LoadSavedTheme()
     {

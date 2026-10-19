@@ -530,5 +530,86 @@
                 </Border>
             </Grid>
         </Border>
+
+        <!-- ===== LIQUID GLASS SUCCESS MODAL DIALOG (Bảng thông báo hoàn thành đồng bộ giao diện) ===== -->
+        <Grid x:Name="SuccessModalOverlay" Grid.RowSpan="2" Visibility="Collapsed">
+            <!-- Backdrop tối mờ chiều sâu -->
+            <Border Background="#60000000">
+                <Border.Effect>
+                    <BlurEffect Radius="15"/>
+                </Border.Effect>
+            </Border>
+
+            <!-- Card Kính Trung Tâm -->
+            <Border Width="460" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="{DynamicResource GlassElementBackgroundBrush}"
+                    BorderBrush="{DynamicResource GlassGradientBorderBrush}"
+                    BorderThickness="1.2" CornerRadius="16" Padding="24"
+                    ClipToBounds="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="35" ShadowDepth="8" Opacity="0.45" Direction="270" Color="#000000"/>
+                </Border.Effect>
+
+                <Grid>
+                    <!-- Quầng sáng Neon xanh ngọc lan tỏa ở góc trên -->
+                    <Border Width="200" Height="200" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-100,-100,0"
+                            Background="{DynamicResource GlassCardHoverGlowBrush}" Opacity="0.8" IsHitTestVisible="False">
+                        <Border.Effect>
+                            <BlurEffect Radius="30"/>
+                        </Border.Effect>
+                    </Border>
+
+                    <StackPanel>
+                        <!-- Biểu tượng và Tiêu đề -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16" VerticalAlignment="Center">
+                            <Border Width="42" Height="42" CornerRadius="21" Background="#2000E676" BorderBrush="#6000E676" BorderThickness="1.2" Margin="0,0,12,0">
+                                <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="24" Foreground="#00E676" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Hoàn Tất Chuyển Đổi!" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="Tài liệu Microsoft Word HTML (.doc) đã sẵn sàng" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Khung thông tin file đã lưu -->
+                        <Border Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="TẬP TIN ĐÃ LƯU TẠI:" FontSize="10" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="TxtModalOutputPath" Text="D:\...\DeThi_ChuyenDoi.doc" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="TxtModalSkipNote" FontSize="11" Foreground="#F59E0B" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Câu hỏi gợi ý -->
+                        <TextBlock Text="Bạn có muốn mở ngay tập tin này bằng Microsoft Word không?" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,20"/>
+
+                        <!-- Cặp nút hành động phong cách Liquid Glass -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="140"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Nút Mở File (Interactive Neon Glowing Button) -->
+                            <ui:Button x:Name="BtnModalOpenWord" Grid.Column="0" Height="40" Margin="0,0,10,0"
+                                       Style="{StaticResource InteractiveButtonNeon}"
+                                       Click="BtnModalOpenWord_Click">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="Open24" FontSize="16" Foreground="#FFFFFF" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Mở Microsoft Word" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:Button>
+
+                            <!-- Nút Để Sau (Glass Button) -->
+                            <Button x:Name="BtnModalClose" Grid.Column="1" Height="40"
+                                    Style="{StaticResource GlassPlainButton}"
+                                    Click="BtnModalClose_Click">
+                                <TextBlock Text="Để sau" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </ui:FluentWindow>

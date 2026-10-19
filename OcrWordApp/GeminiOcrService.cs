@@ -497,7 +497,66 @@ public class GeminiOcrService
         }
 
         // Nếu chỉ là đoạn HTML thô
-        return html.Trim();
+        return OptimizeScriptIndices(html.Trim());
+    }
+
+    /// <summary>
+    /// Tối ưu hóa chỉ số trên (superscript: m², m³, cm³, m/s², bình phương...) 
+    /// và chỉ số dưới (subscript: công thức hóa học H₂O, H₂SO₄, chỉ số vật lý U₁, E₀...)
+    /// để khi mở file Word hiển thị chuẩn xác, không bị dính chữ số thường.
+    /// </summary>
+    public static string OptimizeScriptIndices(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return html;
+
+        // 1. Chuẩn hóa các ký tự Unicode chỉ số trên/dưới sang thẻ HTML <sup> và <sub>
+        // (Word mở HTML hỗ trợ thẻ <sup> và <sub> tốt hơn và đồng nhất font với văn bản)
+        html = html.Replace("²", "<sup>2</sup>")
+                   .Replace("³", "<sup>3</sup>")
+                   .Replace("⁴", "<sup>4</sup>")
+                   .Replace("⁵", "<sup>5</sup>")
+                   .Replace("⁶", "<sup>6</sup>")
+                   .Replace("⁷", "<sup>7</sup>")
+                   .Replace("⁸", "<sup>8</sup>")
+                   .Replace("⁹", "<sup>9</sup>")
+                   .Replace("⁰", "<sup>0</sup>")
+                   .Replace("¹", "<sup>1</sup>")
+                   .Replace("⁻¹", "<sup>-1</sup>")
+                   .Replace("⁻²", "<sup>-2</sup>")
+                   .Replace("⁻³", "<sup>-3</sup>");
+
+        html = html.Replace("₀", "<sub>0</sub>")
+                   .Replace("₁", "<sub>1</sub>")
+                   .Replace("₂", "<sub>2</sub>")
+                   .Replace("₃", "<sub>3</sub>")
+                   .Replace("₄", "<sub>4</sub>")
+                   .Replace("₅", "<sub>5</sub>")
+                   .Replace("₆", "<sub>6</sub>")
+                   .Replace("₇", "<sub>7</sub>")
+                   .Replace("₈", "<sub>8</sub>")
+                   .Replace("₉", "<sub>9</sub>");
+
+        // 2. Tự động nhận diện đơn vị đo lường có số mũ bị viết dạng thường bên ngoài thẻ HTML/Math:
+        // Ví dụ: m2 -> m<sup>2</sup>, m3 -> m<sup>3</sup>, cm2 -> cm<sup>2</sup>, cm3 -> cm<sup>3</sup>, km2 -> km<sup>2</sup>, dm2 -> dm<sup>2</sup>, dm3 -> dm<sup>3</sup>, mm2 -> mm<sup>2</sup>, mm3 -> mm<sup>3</sup>
+        // Áp dụng khi đứng sau số hoặc khoảng trắng/dấu câu, tránh ảnh hưởng đến các thuộc tính HTML (class, id, tag...)
+        var unitPattern = @"(?<=\d|\s|&nbsp;|[(/,;:])(?<unit>k?m|c?m|d?m|m?m|s)(?<exp>[23])(?=[,\.;:?\s\)\]]|$|<)";
+        html = Regex.Replace(html, unitPattern, m =>
+        {
+            var unit = m.Groups["unit"].Value;
+            var exp = m.Groups["exp"].Value;
+            return $"{unit}<sup>{exp}</sup>";
+        }, RegexOptions.IgnoreCase);
+
+        // 3. Chuẩn hóa gia tốc m/s2 -> m/s<sup>2</sup> hoặc cm/s2 -> cm/s<sup>2</sup>
+        html = Regex.Replace(html, @"(?i)(?<unit>c?m/s)2(?=[,\.;:?\s\)\]]|$|<)", "${unit}<sup>2</sup>");
+
+        // 4. Chuẩn hóa đơn vị đo diện tích / thể tích / khối lượng riêng có kg/m3
+        html = Regex.Replace(html, @"(?i)(?<unit>kg/m)3(?=[,\.;:?\s\)\]]|$|<)", "${unit}<sup>3</sup>");
+
+        // 5. Chuẩn hóa 10 mũ âm hoặc dương: ví dụ 10^-3, 10^-2, 10^3...
+        html = Regex.Replace(html, @"10\^(-?\d+)", "10<sup>$1</sup>");
+
+        return html;
     }
 
     /// <summary>
@@ -519,6 +578,8 @@ public class GeminiOcrService
         sb.AppendLine("  body { font-family: \"Times New Roman\", Times, serif; font-size: 12pt; line-height: 1.25; color: #000000; text-align: left; }");
         sb.AppendLine("  p { margin: 0 0 3pt 0; text-align: left; }");
         sb.AppendLine("  td, div { text-align: left; }");
+        sb.AppendLine("  sup { font-size: 8.5pt; vertical-align: super; mso-text-raise: 36%; line-height: 0; }");
+        sb.AppendLine("  sub { font-size: 8.5pt; vertical-align: sub; mso-text-raise: -25%; line-height: 0; }");
         sb.AppendLine("  math { font-family: \"Cambria Math\", serif; font-size: 14pt; }");
         sb.AppendLine("</style>");
         sb.AppendLine("</head>");
@@ -700,7 +761,7 @@ public class GeminiOcrService
             }
         }
 
-        return result;
+        return OptimizeScriptIndices(result);
     }
 
     /// <summary>
