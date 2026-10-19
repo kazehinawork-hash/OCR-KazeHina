@@ -393,9 +393,9 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1" CornerRadius="8"
-                                Padding="{TemplateBinding Padding}">
+                                ClipToBounds="True">
                             <Grid>
-                                <!-- Lớp màu thở nội bộ (Internal Color Breath Layer) -->
+                                <!-- Lớp màu thở nội bộ (Internal Color Breath Layer): Phủ tràn 100% full ô nút -->
                                 <Border x:Name="PulseColorLayer" CornerRadius="7" Opacity="0">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -406,7 +406,9 @@
                                     </Border.Background>
                                 </Border>
 
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                                <ContentPresenter Margin="{TemplateBinding Padding}" 
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                                  RecognizesAccessKey="True"/>
                             </Grid>
                         </Border>
                     </Grid>
