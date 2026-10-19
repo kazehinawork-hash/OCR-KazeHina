@@ -289,6 +289,39 @@
                                              VirtualizingPanel.VirtualizationMode="Recycling"
                                              ScrollViewer.CanContentScroll="True"
                                              SelectionChanged="LstFiles_SelectionChanged">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                                <Setter Property="Padding" Value="0"/>
+                                                <Setter Property="Margin" Value="0,2"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="ItemHost" Background="Transparent" CornerRadius="8" Padding="0">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <!-- Hiệu ứng chọn kính mờ pha lê 25% kèm viền Cyan phát quang siêu đẹp, không bao giờ che mất ảnh nền -->
+                                                                    <Setter TargetName="ItemHost" Property="Background" Value="#2500B4D8"/>
+                                                                    <Setter TargetName="ItemHost" Property="BorderBrush" Value="#8000F0FF"/>
+                                                                    <Setter TargetName="ItemHost" Property="BorderThickness" Value="1.2"/>
+                                                                </Trigger>
+                                                                <MultiTrigger>
+                                                                    <MultiTrigger.Conditions>
+                                                                        <Condition Property="IsMouseOver" Value="True"/>
+                                                                        <Condition Property="IsSelected" Value="False"/>
+                                                                    </MultiTrigger.Conditions>
+                                                                    <Setter TargetName="ItemHost" Property="Background" Value="#15FFFFFF"/>
+                                                                </MultiTrigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Padding="8,6" Margin="0,3" CornerRadius="8" 
