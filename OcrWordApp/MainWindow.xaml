@@ -258,9 +258,14 @@
 
                             <!-- Button Toolbar (WrapPanel tự xuống dòng mượt mà nếu thiếu chỗ, không bao giờ đè chữ) -->
                             <WrapPanel Grid.Row="1" Margin="0,0,0,10" VerticalAlignment="Center">
-                                <ui:Button Content="Dán Ảnh (Ctrl+V)" Padding="12,6" Margin="0,0,6,6"
+                                <ui:Button Padding="12,6" Margin="0,0,6,6"
                                            Style="{StaticResource InteractiveButtonNeon}"
-                                           Cursor="Hand" Click="BtnPasteClipboard_Click"/>
+                                           Cursor="Hand" Click="BtnPasteClipboard_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="ClipboardPaste24" FontSize="16" Foreground="#FFFFFF" Margin="0,0,6,0"/>
+                                        <TextBlock Text="Dán Ảnh (Ctrl+V)" FontSize="12.5" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ui:Button>
                                 <ui:Button Content="Thêm Ảnh" Padding="10,6" Margin="0,0,6,6"
                                            Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" Cursor="Hand" Click="BtnAddImages_Click"/>
@@ -386,11 +391,14 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ui:Button x:Name="BtnConvert" Grid.Column="0" Height="48"
-                                           Content="Bắt đầu"
                                            FontSize="15" FontWeight="Bold"
-                                           Icon="{ui:SymbolIcon Play24}"
                                            Style="{StaticResource InteractiveButtonNeon}"
-                                           Click="BtnConvert_Click"/>
+                                           Click="BtnConvert_Click">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="Play24" FontSize="18" Foreground="#FFFFFF" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Bắt đầu" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ui:Button>
 
                                 <ui:Button x:Name="BtnCancel" Grid.Column="1" Margin="10,0,0,0" Width="110" Height="48"
                                            Content="Hủy"
