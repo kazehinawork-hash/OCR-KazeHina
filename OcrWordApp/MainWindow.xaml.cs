@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
+using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
 namespace OcrWordApp;
@@ -49,10 +51,50 @@ public partial class MainWindow : FluentWindow
 
     private static string? FindApiKeysFile() => FindKeyFile("api_keys.txt");
 
+    private static readonly string ThemeConfigFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".ocr_word_gemini_theme.txt"
+    );
+
+    private static readonly string BackgroundConfigFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".ocr_word_gemini_bg.txt"
+    );
+
+    private static readonly string BackgroundModeConfigFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".ocr_word_gemini_bg_mode.txt"
+    );
+
+    private static readonly string BackgroundTransformConfigFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".ocr_word_gemini_bg_transform.txt"
+    );
+
+    public enum BackgroundFitMode
+    {
+        FitAndBlur, // Vừa vặn + Blur hai bên
+        Fill,       // Phủ kín toàn màn hình (Cover)
+        Center,     // Kích thước gốc căn giữa
+        Custom      // Tùy chỉnh góc (Kéo rê + Zoom)
+    }
+
+    private BackgroundFitMode _currentBgMode = BackgroundFitMode.FitAndBlur;
+    private string? _currentBgPath;
+    private bool _isBgPanModeActive = false;
+    private bool _isDraggingBg = false;
+    private Point _lastDragPoint;
+    private double _customScale = 1.0;
+    private double _customTranslateX = 0;
+    private double _customTranslateY = 0;
+    private System.Windows.Threading.DispatcherTimer? _saveTransformTimer;
+
     private readonly List<string> _activeApiKeys = new();
     private readonly List<string> _activeDeepSeekKeys = new();
     private int _keyRotationIndex = 0;
     private CancellationTokenSource? _conversionCts;
+    private ResourceDictionary? _lightGlassDictionary;
+    private ApplicationTheme _currentTheme = ApplicationTheme.Dark;
 
     private readonly ObservableCollection<FileItem> _fileItems = new();
 
@@ -69,6 +111,14 @@ public partial class MainWindow : FluentWindow
         // Lắng nghe sự kiện bàn phím phím tắt Ctrl + V
         this.KeyDown += MainWindow_KeyDown;
 
+        // Lắng nghe sự kiện chuột khi bật chế độ Kéo rê / Chỉnh góc hình nền
+        this.PreviewMouseWheel += MainWindow_PreviewMouseWheel;
+        this.PreviewMouseDown += MainWindow_PreviewMouseDown;
+        this.PreviewMouseMove += MainWindow_PreviewMouseMove;
+        this.PreviewMouseUp += MainWindow_PreviewMouseUp;
+
+        LoadSavedTheme();
+        LoadSavedBackground();
         LoadSavedApiKey();
         LoadDeepSeekKey();
 
@@ -96,7 +146,6 @@ public partial class MainWindow : FluentWindow
         if (TxtFileCountBadge != null)
         {
             TxtFileCountBadge.Text = $"{_fileItems.Count} ảnh đã chọn";
-            TxtFileCountBadge.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x38, 0xBD, 0xF8));
         }
     }
 
@@ -825,5 +874,622 @@ public partial class MainWindow : FluentWindow
             TxtProgressPercent.Visibility = Visibility.Collapsed;
             BusyBadge.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private void LoadSavedTheme()
+    {
+        try
+        {
+            if (File.Exists(ThemeConfigFilePath))
+            {
+                var saved = File.ReadAllText(ThemeConfigFilePath).Trim();
+                if (string.Equals(saved, "Light", StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplyTheme(ApplicationTheme.Light, save: false);
+                    return;
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi đọc cấu hình theme
+        }
+        ApplyTheme(ApplicationTheme.Dark, save: false);
+    }
+
+    private void SaveTheme(ApplicationTheme theme)
+    {
+        try
+        {
+            File.WriteAllText(ThemeConfigFilePath, theme.ToString());
+        }
+        catch
+        {
+            // Bỏ qua lỗi ghi cấu hình theme
+        }
+    }
+
+    private void ApplyTheme(ApplicationTheme theme, bool save = true)
+    {
+        _currentTheme = theme;
+
+        try
+        {
+            ApplicationThemeManager.Apply(theme, WindowBackdropType.Acrylic, updateAccent: true);
+        }
+        catch
+        {
+            // Dự phòng nếu hệ điều hành không hỗ trợ Acrylic
+            ApplicationThemeManager.Apply(theme, WindowBackdropType.None, updateAccent: true);
+        }
+
+        var appMerged = System.Windows.Application.Current.Resources.MergedDictionaries;
+
+        if (theme == ApplicationTheme.Light)
+        {
+            if (_lightGlassDictionary == null)
+            {
+                _lightGlassDictionary = new ResourceDictionary
+                {
+                    Source = new Uri("Themes/LiquidGlass.Light.xaml", UriKind.RelativeOrAbsolute)
+                };
+            }
+
+            if (!appMerged.Contains(_lightGlassDictionary))
+            {
+                appMerged.Add(_lightGlassDictionary);
+            }
+
+            if (IconTheme != null) IconTheme.Symbol = SymbolRegular.WeatherSunny24;
+            if (TxtThemeMode != null) TxtThemeMode.Text = "Light";
+
+            // Ở chế độ Light: Không phủ lớp trắng đục làm mờ ảnh nền, giữ nguyên độ trong trẻo và rực rỡ của wallpaper
+            if (CustomBgOverlay != null)
+                CustomBgOverlay.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#10000000"));
+        }
+        else
+        {
+            if (_lightGlassDictionary != null && appMerged.Contains(_lightGlassDictionary))
+            {
+                appMerged.Remove(_lightGlassDictionary);
+            }
+
+            if (IconTheme != null) IconTheme.Symbol = SymbolRegular.WeatherMoon24;
+            if (TxtThemeMode != null) TxtThemeMode.Text = "Dark";
+
+            // Ở chế độ Dark: Lớp phủ tối mỏng (#35000000) giúp chữ trắng nổi bật
+            if (CustomBgOverlay != null)
+                CustomBgOverlay.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#35000000"));
+        }
+
+        if (save)
+        {
+            SaveTheme(theme);
+        }
+    }
+
+    private void BtnThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        var targetTheme = _currentTheme == ApplicationTheme.Dark 
+            ? ApplicationTheme.Light 
+            : ApplicationTheme.Dark;
+
+        ApplyTheme(targetTheme, save: true);
+    }
+
+    private void LoadSavedBackground()
+    {
+        try
+        {
+            if (File.Exists(BackgroundTransformConfigFilePath))
+            {
+                var transStr = File.ReadAllText(BackgroundTransformConfigFilePath).Trim();
+                var parts = transStr.Split(';');
+                if (parts.Length == 3 &&
+                    double.TryParse(parts[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var scale) &&
+                    double.TryParse(parts[1], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var tx) &&
+                    double.TryParse(parts[2], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var ty))
+                {
+                    _customScale = Math.Clamp(scale, 0.5, 5.0);
+                    _customTranslateX = tx;
+                    _customTranslateY = ty;
+                }
+            }
+
+            if (File.Exists(BackgroundModeConfigFilePath))
+            {
+                var modeStr = File.ReadAllText(BackgroundModeConfigFilePath).Trim();
+                if (Enum.TryParse<BackgroundFitMode>(modeStr, true, out var savedMode))
+                {
+                    _currentBgMode = savedMode;
+                }
+            }
+
+            if (File.Exists(BackgroundConfigFilePath))
+            {
+                var bgPath = File.ReadAllText(BackgroundConfigFilePath).Trim();
+                if (!string.IsNullOrEmpty(bgPath) && File.Exists(bgPath))
+                {
+                    ApplyBackgroundImage(bgPath, save: false);
+                    if (_currentBgMode == BackgroundFitMode.Custom)
+                    {
+                        // Khi khởi động lại ứng dụng, tự động khóa góc đã lưu để người dùng thao tác ứng dụng bình thường
+                        SetBgPanMode(false);
+                        UpdateSaveCustomBgButtonState(isLocked: true);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi nạp ảnh nền đã lưu
+        }
+    }
+
+    private void ApplyBackgroundImage(string? imagePath, bool save = true)
+    {
+        _currentBgPath = imagePath;
+
+        if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+        {
+            ImgBlurBackground.Source = null;
+            ImgBlurBackground.Visibility = Visibility.Collapsed;
+
+            ImgCustomBackground.Source = null;
+            ImgCustomBackground.Visibility = Visibility.Collapsed;
+
+            CustomBgOverlay.Visibility = Visibility.Collapsed;
+            BtnClearBackground.Visibility = Visibility.Collapsed;
+            BtnBgFitMode.Visibility = Visibility.Collapsed;
+            if (BtnSaveCustomBg != null) BtnSaveCustomBg.Visibility = Visibility.Collapsed;
+
+            SetBgPanMode(false);
+
+            if (save)
+            {
+                try
+                {
+                    if (File.Exists(BackgroundConfigFilePath))
+                        File.Delete(BackgroundConfigFilePath);
+                }
+                catch { }
+            }
+            return;
+        }
+
+        try
+        {
+            // Đọc trực tiếp qua FileStream để nạp toàn bộ vào RAM, tránh lock file ảnh gốc
+            using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.StreamSource = fs;
+            bmp.EndInit();
+            bmp.Freeze();
+
+            ImgBlurBackground.Source = bmp;
+            ImgCustomBackground.Source = bmp;
+
+            UpdateBackgroundLayout();
+
+            CustomBgOverlay.Background = _currentTheme == ApplicationTheme.Light
+                ? new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#10000000"))
+                : new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#35000000"));
+
+            CustomBgOverlay.Visibility = Visibility.Visible;
+            BtnClearBackground.Visibility = Visibility.Visible;
+            BtnBgFitMode.Visibility = Visibility.Visible;
+
+            if (save)
+            {
+                File.WriteAllText(BackgroundConfigFilePath, imagePath);
+                File.WriteAllText(BackgroundModeConfigFilePath, _currentBgMode.ToString());
+                SaveBackgroundTransform();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Không thể nạp ảnh nền:\n{ex.Message}", "Lỗi ảnh nền", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+        }
+    }
+
+    private void SaveBackgroundTransform(bool debounce = true)
+    {
+        if (debounce)
+        {
+            if (_saveTransformTimer == null)
+            {
+                _saveTransformTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(400)
+                };
+                _saveTransformTimer.Tick += (s, e) =>
+                {
+                    _saveTransformTimer.Stop();
+                    SaveBackgroundTransform(debounce: false);
+                };
+            }
+            _saveTransformTimer.Stop();
+            _saveTransformTimer.Start();
+            return;
+        }
+
+        try
+        {
+            var str = $"{_customScale.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)};{_customTranslateX.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)};{_customTranslateY.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)}";
+            File.WriteAllText(BackgroundTransformConfigFilePath, str);
+        }
+        catch { }
+    }
+
+    private void UpdateBackgroundLayout()
+    {
+        switch (_currentBgMode)
+        {
+            case BackgroundFitMode.FitAndBlur:
+                // Lớp 1: Blur toàn màn hình phía sau xóa tan viền đen
+                ImgBlurBackground.Visibility = Visibility.Visible;
+                ImgBlurBackground.Stretch = System.Windows.Media.Stretch.UniformToFill;
+
+                // Lớp 2: Ảnh chính vừa vặn không bị cắt xén
+                ImgCustomBackground.Visibility = Visibility.Visible;
+                ImgCustomBackground.Stretch = System.Windows.Media.Stretch.Uniform;
+                ImgCustomBackground.HorizontalAlignment = HorizontalAlignment.Center;
+                ImgCustomBackground.VerticalAlignment = VerticalAlignment.Center;
+
+                BgScaleTransform.ScaleX = 1.0;
+                BgScaleTransform.ScaleY = 1.0;
+                BgTranslateTransform.X = 0;
+                BgTranslateTransform.Y = 0;
+
+                if (TxtBgFitMode != null) TxtBgFitMode.Text = "Vừa vặn";
+                if (IconBgFitMode != null) IconBgFitMode.Symbol = SymbolRegular.SlideSize24;
+                if (BtnSaveCustomBg != null) BtnSaveCustomBg.Visibility = Visibility.Collapsed;
+                SetBgPanMode(false);
+                break;
+
+            case BackgroundFitMode.Fill:
+                // Phủ kín toàn bộ (Cover)
+                ImgBlurBackground.Visibility = Visibility.Collapsed;
+
+                ImgCustomBackground.Visibility = Visibility.Visible;
+                ImgCustomBackground.Stretch = System.Windows.Media.Stretch.UniformToFill;
+                ImgCustomBackground.HorizontalAlignment = HorizontalAlignment.Center;
+                ImgCustomBackground.VerticalAlignment = VerticalAlignment.Center;
+
+                BgScaleTransform.ScaleX = 1.0;
+                BgScaleTransform.ScaleY = 1.0;
+                BgTranslateTransform.X = 0;
+                BgTranslateTransform.Y = 0;
+
+                if (TxtBgFitMode != null) TxtBgFitMode.Text = "Phủ đầy";
+                if (IconBgFitMode != null) IconBgFitMode.Symbol = SymbolRegular.FullScreenMaximize24;
+                if (BtnSaveCustomBg != null) BtnSaveCustomBg.Visibility = Visibility.Collapsed;
+                SetBgPanMode(false);
+                break;
+
+            case BackgroundFitMode.Center:
+                // Căn giữa kích thước gốc
+                ImgBlurBackground.Visibility = Visibility.Visible;
+                ImgBlurBackground.Stretch = System.Windows.Media.Stretch.UniformToFill;
+
+                ImgCustomBackground.Visibility = Visibility.Visible;
+                ImgCustomBackground.Stretch = System.Windows.Media.Stretch.None;
+                ImgCustomBackground.HorizontalAlignment = HorizontalAlignment.Center;
+                ImgCustomBackground.VerticalAlignment = VerticalAlignment.Center;
+
+                BgScaleTransform.ScaleX = 1.0;
+                BgScaleTransform.ScaleY = 1.0;
+                BgTranslateTransform.X = 0;
+                BgTranslateTransform.Y = 0;
+
+                if (TxtBgFitMode != null) TxtBgFitMode.Text = "Căn giữa";
+                if (IconBgFitMode != null) IconBgFitMode.Symbol = SymbolRegular.AlignCenterHorizontal24;
+                if (BtnSaveCustomBg != null) BtnSaveCustomBg.Visibility = Visibility.Collapsed;
+                SetBgPanMode(false);
+                break;
+
+            case BackgroundFitMode.Custom:
+                // Tùy chỉnh góc tự do (Kéo rê + Zoom):
+                ImgBlurBackground.Visibility = Visibility.Visible;
+                ImgBlurBackground.Stretch = System.Windows.Media.Stretch.UniformToFill;
+
+                ImgCustomBackground.Visibility = Visibility.Visible;
+                ImgCustomBackground.Stretch = System.Windows.Media.Stretch.Uniform;
+                ImgCustomBackground.HorizontalAlignment = HorizontalAlignment.Center;
+                ImgCustomBackground.VerticalAlignment = VerticalAlignment.Center;
+
+                BgScaleTransform.ScaleX = _customScale;
+                BgScaleTransform.ScaleY = _customScale;
+                BgTranslateTransform.X = _customTranslateX;
+                BgTranslateTransform.Y = _customTranslateY;
+
+                if (TxtBgFitMode != null) TxtBgFitMode.Text = "Tùy chỉnh góc";
+                if (IconBgFitMode != null) IconBgFitMode.Symbol = SymbolRegular.Crop24;
+
+                // Hiển thị nút Khóa góc & bật chế độ căn chỉnh ban đầu
+                if (BtnSaveCustomBg != null)
+                {
+                    BtnSaveCustomBg.Visibility = Visibility.Visible;
+                    UpdateSaveCustomBgButtonState(isLocked: false);
+                }
+                SetBgPanMode(true);
+                break;
+        }
+    }
+
+    private void BtnBgFitMode_Click(object sender, RoutedEventArgs e)
+    {
+        // Chuyển đổi xoay vòng giữa 4 chế độ: Vừa vặn -> Phủ đầy -> Căn giữa -> Tùy chỉnh góc
+        _currentBgMode = _currentBgMode switch
+        {
+            BackgroundFitMode.FitAndBlur => BackgroundFitMode.Fill,
+            BackgroundFitMode.Fill => BackgroundFitMode.Center,
+            BackgroundFitMode.Center => BackgroundFitMode.Custom,
+            _ => BackgroundFitMode.FitAndBlur
+        };
+
+        UpdateBackgroundLayout();
+
+        try
+        {
+            File.WriteAllText(BackgroundModeConfigFilePath, _currentBgMode.ToString());
+        }
+        catch { }
+    }
+
+    private void SetBgPanMode(bool active)
+    {
+        _isBgPanModeActive = active;
+        if (PanInteractiveOverlay != null)
+        {
+            PanInteractiveOverlay.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
+            PanInteractiveOverlay.IsHitTestVisible = active;
+            PanInteractiveOverlay.Cursor = active ? Cursors.SizeAll : Cursors.Arrow;
+        }
+
+        if (active)
+        {
+            TxtStatus.Text = "🖐️ Chế độ Tùy chỉnh góc: Giữ chuột trái kéo để di chuyển ảnh, Lăn chuột để phóng to/thu nhỏ góc ảnh đẹp nhất.";
+        }
+    }
+
+    private void PanOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            _isDraggingBg = true;
+            _lastDragPoint = e.GetPosition(this);
+            PanInteractiveOverlay.CaptureMouse();
+            e.Handled = true;
+        }
+    }
+
+    private void PanOverlay_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDraggingBg) return;
+
+        var currentPoint = e.GetPosition(this);
+        var deltaX = currentPoint.X - _lastDragPoint.X;
+        var deltaY = currentPoint.Y - _lastDragPoint.Y;
+
+        _lastDragPoint = currentPoint;
+
+        _customTranslateX += deltaX;
+        _customTranslateY += deltaY;
+
+        BgTranslateTransform.X = _customTranslateX;
+        BgTranslateTransform.Y = _customTranslateY;
+
+        e.Handled = true;
+    }
+
+    private void PanOverlay_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDraggingBg)
+        {
+            _isDraggingBg = false;
+            PanInteractiveOverlay.ReleaseMouseCapture();
+            SaveBackgroundTransform();
+            e.Handled = true;
+        }
+    }
+
+    private void PanOverlay_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        ZoomAtPoint(e.GetPosition(this), e.Delta);
+        e.Handled = true;
+    }
+
+    private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isBgPanModeActive || e.LeftButton != MouseButtonState.Pressed) return;
+
+        // Bỏ qua nếu bấm vào TitleBar hoặc các nút để người dùng vẫn thao tác được
+        if (e.OriginalSource is DependencyObject dep && FindParent<Wpf.Ui.Controls.Button>(dep) != null)
+            return;
+
+        _isDraggingBg = true;
+        _lastDragPoint = e.GetPosition(this);
+        Mouse.Capture(this);
+        e.Handled = true;
+    }
+
+    private void MainWindow_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isBgPanModeActive || !_isDraggingBg) return;
+
+        var currentPoint = e.GetPosition(this);
+        var deltaX = currentPoint.X - _lastDragPoint.X;
+        var deltaY = currentPoint.Y - _lastDragPoint.Y;
+
+        _lastDragPoint = currentPoint;
+
+        _customTranslateX += deltaX;
+        _customTranslateY += deltaY;
+
+        BgTranslateTransform.X = _customTranslateX;
+        BgTranslateTransform.Y = _customTranslateY;
+
+        e.Handled = true;
+    }
+
+    private void MainWindow_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDraggingBg)
+        {
+            _isDraggingBg = false;
+            Mouse.Capture(null);
+            SaveBackgroundTransform();
+            e.Handled = true;
+        }
+    }
+
+    private void MainWindow_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (!_isBgPanModeActive) return;
+
+        ZoomAtPoint(e.GetPosition(this), e.Delta);
+        e.Handled = true;
+    }
+
+    private void ZoomAtPoint(Point mousePos, int delta)
+    {
+        double oldScale = _customScale;
+        double zoomFactor = delta > 0 ? 1.12 : 0.89;
+        double newScale = Math.Clamp(oldScale * zoomFactor, 0.4, 8.0);
+
+        if (Math.Abs(newScale - oldScale) < 0.0001) return;
+
+        // Vị trí con trỏ chuột so với ImgCustomBackground trước khi áp dụng RenderTransform:
+        // Do RenderTransformOrigin="0,0", vị trí của điểm trên ảnh sau transform là:
+        // ScreenPos = ImgBasePos + CustomTranslate + ImgPoint * Scale
+        // => ImgPoint * oldScale = mousePos - ImgBasePos - oldTranslate
+        // Để giữ điểm ImgPoint cố định tại mousePos sau khi scale thành newScale:
+        // mousePos = ImgBasePos + newTranslate + ImgPoint * newScale
+        // => newTranslate = mousePos - ImgBasePos - (mousePos - ImgBasePos - oldTranslate) * (newScale / oldScale)
+        // Đặt P = mousePos - ImgBasePos:
+        // newTranslate = P - (P - oldTranslate) * (newScale / oldScale)
+
+        Point imgBasePos;
+        try
+        {
+            // Lấy vị trí góc trên-trái (0,0) chưa biến đổi của ImgCustomBackground trên cửa sổ
+            var baseTransform = ImgCustomBackground.TransformToAncestor(this);
+            // Trừ đi translate hiện tại để tìm gốc layout thực sự
+            var currentTransformedTopLeft = baseTransform.Transform(new Point(0, 0));
+            imgBasePos = new Point(currentTransformedTopLeft.X - _customTranslateX, currentTransformedTopLeft.Y - _customTranslateY);
+        }
+        catch
+        {
+            // Fallback nếu chưa layout xong: giả định căn giữa
+            double fallbackX = Math.Max(0, (this.ActualWidth - ImgCustomBackground.ActualWidth) / 2.0);
+            double fallbackY = Math.Max(0, (this.ActualHeight - ImgCustomBackground.ActualHeight) / 2.0);
+            imgBasePos = new Point(fallbackX, fallbackY);
+        }
+
+        double pX = mousePos.X - imgBasePos.X;
+        double pY = mousePos.Y - imgBasePos.Y;
+        double scaleRatio = newScale / oldScale;
+
+        _customTranslateX = pX - (pX - _customTranslateX) * scaleRatio;
+        _customTranslateY = pY - (pY - _customTranslateY) * scaleRatio;
+        _customScale = newScale;
+
+        BgScaleTransform.ScaleX = _customScale;
+        BgScaleTransform.ScaleY = _customScale;
+        BgTranslateTransform.X = _customTranslateX;
+        BgTranslateTransform.Y = _customTranslateY;
+
+        SaveBackgroundTransform();
+    }
+
+    private static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        DependencyObject parentObject = System.Windows.Media.VisualTreeHelper.GetParent(child);
+        if (parentObject == null) return null;
+        if (parentObject is T parent) return parent;
+        return FindParent<T>(parentObject);
+    }
+
+    private void BtnChangeBackground_Click(object sender, RoutedEventArgs e)
+    {
+        var ofd = new OpenFileDialog
+        {
+            Title = "Chọn ảnh nền cho giao diện (Background)",
+            Filter = "Tập tin hình ảnh (*.jpg;*.jpeg;*.png;*.webp;*.bmp)|*.jpg;*.jpeg;*.png;*.webp;*.bmp|Tất cả tập tin (*.*)|*.*",
+            Multiselect = false
+        };
+
+        if (ofd.ShowDialog() == true)
+        {
+            ApplyBackgroundImage(ofd.FileName, save: true);
+        }
+    }
+
+    private void UpdateSaveCustomBgButtonState(bool isLocked)
+    {
+        if (BtnSaveCustomBg == null) return;
+
+        if (isLocked)
+        {
+            // Trạng thái: Đã khóa (Click vào để mở lại chế độ chỉnh)
+            BtnSaveCustomBg.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1538BDF8"));
+            BtnSaveCustomBg.BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#5038BDF8"));
+            if (IconSaveCustomBg != null)
+            {
+                IconSaveCustomBg.Symbol = SymbolRegular.LockClosed24;
+                IconSaveCustomBg.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#38BDF8"));
+            }
+            if (TxtSaveCustomBg != null)
+            {
+                TxtSaveCustomBg.Text = "Đã khóa (Bấm để chỉnh)";
+                TxtSaveCustomBg.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#38BDF8"));
+            }
+            BtnSaveCustomBg.ToolTip = "Góc ảnh đã được cố định an toàn. Bấm vào đây nếu muốn mở khóa để căn chỉnh lại.";
+        }
+        else
+        {
+            // Trạng thái: Đang chỉnh (Click vào để Lưu và Khóa)
+            BtnSaveCustomBg.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2510B981"));
+            BtnSaveCustomBg.BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7010B981"));
+            if (IconSaveCustomBg != null)
+            {
+                IconSaveCustomBg.Symbol = SymbolRegular.Checkmark24;
+                IconSaveCustomBg.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#34D399"));
+            }
+            if (TxtSaveCustomBg != null)
+            {
+                TxtSaveCustomBg.Text = "Lưu & Khóa góc";
+                TxtSaveCustomBg.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#34D399"));
+            }
+            BtnSaveCustomBg.ToolTip = "Bấm để lưu và khóa vị trí góc ảnh hiện tại, trả lại thao tác chuột bình thường cho phần mềm.";
+        }
+    }
+
+    private void BtnSaveCustomBg_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isBgPanModeActive)
+        {
+            // Đang chỉnh -> Khóa lại và lưu
+            SetBgPanMode(false);
+            SaveBackgroundTransform(debounce: false);
+            UpdateSaveCustomBgButtonState(isLocked: true);
+            TxtStatus.Text = "🔒 Đã lưu & khóa góc hình nền. Giờ bạn có thể thoải mái thao tác với tài liệu và danh sách ảnh!";
+        }
+        else
+        {
+            // Đang khóa -> Mở khóa để chỉnh tiếp
+            SetBgPanMode(true);
+            UpdateSaveCustomBgButtonState(isLocked: false);
+            TxtStatus.Text = "🖐️ Đã mở khóa: Giữ chuột trái kéo hoặc lăn chuột zoom góc ảnh theo ý muốn, xong bấm 'Lưu & Khóa góc'.";
+        }
+    }
+
+    private void BtnClearBackground_Click(object sender, RoutedEventArgs e)
+    {
+        SetBgPanMode(false);
+        ApplyBackgroundImage(null, save: true);
     }
 }

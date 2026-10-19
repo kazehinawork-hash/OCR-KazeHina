@@ -40,6 +40,16 @@
     <SolidColorBrush x:Key="GlassAccentBackgroundBrush" Color="#4538467A"/>
     <SolidColorBrush x:Key="GlassSearchBackgroundBrush" Color="#7016162A"/>
 
+    <!-- Theme-adaptive components (Preview box, Badges, Thumbnails) -->
+    <!-- Khung xem trước ảnh: kính đen mờ trong suốt 25% để thấy hình nền đẹp mắt như bên Light -->
+    <SolidColorBrush x:Key="GlassPreviewBackgroundBrush" Color="#300B0F19"/>
+    <SolidColorBrush x:Key="GlassBadgeBackgroundBrush" Color="#0F2942"/>
+    <SolidColorBrush x:Key="GlassBadgeBorderBrush" Color="#0284C7"/>
+    <SolidColorBrush x:Key="GlassBadgeForegroundBrush" Color="#38BDF8"/>
+    <SolidColorBrush x:Key="GlassItemBadgeBackgroundBrush" Color="#1E293B"/>
+    <SolidColorBrush x:Key="GlassThumbnailBackgroundBrush" Color="#4D0F172A"/>
+    <SolidColorBrush x:Key="GlassThumbnailBorderBrush" Color="#334155"/>
+
     <!-- Tab states (Windhawk TabViewItem states) -->
     <SolidColorBrush x:Key="GlassTabNormalBrush" Color="#28141424"/>
     <SolidColorBrush x:Key="GlassTabSelectedBrush" Color="#60181830"/>

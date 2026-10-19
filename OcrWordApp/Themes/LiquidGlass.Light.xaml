@@ -1,0 +1,71 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================
+         LIQUID GLASS 3.0 - LIGHT THEME EDITION
+         Tối ưu độ trong suốt gương thủy tinh cao cấp (Frosted Glass)
+         Cho phép hiệu ứng Acrylic Blur của Windows tỏa sáng rõ nét
+         ============================================ -->
+
+    <!-- ===== 1. BACKDROP & GLASS BRUSHES ===== -->
+    <!-- Window / Main backdrop: Kính trong mờ 18% để nền lộ rõ mồn một -->
+    <SolidColorBrush x:Key="GlassBackgroundBrush" Color="#28FFFFFF"/>
+    <SolidColorBrush x:Key="GlassBackgroundHoverBrush" Color="#40FFFFFF"/>
+    <SolidColorBrush x:Key="GlassBackgroundActiveBrush" Color="#55FFFFFF"/>
+
+    <!-- Button backgrounds: 45% - 70% trắng ngọc trai bóng kính -->
+    <SolidColorBrush x:Key="GlassButtonNormalBrush" Color="#55FFFFFF"/>
+    <SolidColorBrush x:Key="GlassButtonHoverBrush" Color="#85FFFFFF"/>
+    <SolidColorBrush x:Key="GlassButtonPressedBrush" Color="#60E2E8F0"/>
+    <SolidColorBrush x:Key="GlassButtonActiveBrush" Color="#70E2E8F0"/>
+    <SolidColorBrush x:Key="GlassButtonActiveHoverBrush" Color="#90E2E8F0"/>
+
+    <!-- Element backgrounds (Card, Settings Bar, Panels): Kính mờ trong suốt 28% - 35% y hệt Dark Theme nhưng tông trắng ngọc trai -->
+    <SolidColorBrush x:Key="GlassElementBackgroundBrush" Color="#38FFFFFF"/>
+    <SolidColorBrush x:Key="GlassElementBackground2Brush" Color="#25F8FAFC"/>
+    <SolidColorBrush x:Key="GlassButtonBackground2Brush" Color="#40FFFFFF"/>
+    <SolidColorBrush x:Key="GlassAccentBackgroundBrush" Color="#300284C7"/>
+    <SolidColorBrush x:Key="GlassSearchBackgroundBrush" Color="#50FFFFFF"/>
+
+    <!-- Theme-adaptive components (Light Theme: Preview Box, Badges, Thumbnails) -->
+    <!-- Preview Box: Kính mờ trong suốt 20% thấy trọn vẹn hình nền phía sau -->
+    <SolidColorBrush x:Key="GlassPreviewBackgroundBrush" Color="#25FFFFFF"/>
+    <SolidColorBrush x:Key="GlassBadgeBackgroundBrush" Color="#50E0F2FE"/>
+    <SolidColorBrush x:Key="GlassBadgeBorderBrush" Color="#8038BDF8"/>
+    <SolidColorBrush x:Key="GlassBadgeForegroundBrush" Color="#0284C7"/>
+    <SolidColorBrush x:Key="GlassItemBadgeBackgroundBrush" Color="#50E2E8F0"/>
+    <SolidColorBrush x:Key="GlassThumbnailBackgroundBrush" Color="#40F1F5F9"/>
+    <SolidColorBrush x:Key="GlassThumbnailBorderBrush" Color="#60CBD5E1"/>
+
+    <!-- Tab states -->
+    <SolidColorBrush x:Key="GlassTabNormalBrush" Color="#30E2E8F0"/>
+    <SolidColorBrush x:Key="GlassTabSelectedBrush" Color="#60FFFFFF"/>
+    <SolidColorBrush x:Key="GlassTabHoverBrush" Color="#50E0F2FE"/>
+
+    <!-- ===== 2. LIQUID GLASS BORDER BRUSHES (Ánh khúc xạ viền gương trắng) ===== -->
+    <!-- Viền phản quang ánh sáng trắng ngọc (Prism Edge) -->
+    <LinearGradientBrush x:Key="GlassGradientBorderBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#B0FFFFFF" Offset="0.0" />
+        <GradientStop Color="#50CBD5E1" Offset="0.5" />
+        <GradientStop Color="#90FFFFFF" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GlassGradientBorderHoverBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F0FFFFFF" Offset="0.0" />
+        <GradientStop Color="#8094A3B8" Offset="0.5" />
+        <GradientStop Color="#E0FFFFFF" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GlassElementBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#95FFFFFF" Offset="0.0" />
+        <GradientStop Color="#60CBD5E1" Offset="0.5" />
+        <GradientStop Color="#80FFFFFF" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GlassVerticalBorderBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#90FFFFFF" Offset="0.0" />
+        <GradientStop Color="#50CBD5E1" Offset="0.3" />
+        <GradientStop Color="#80FFFFFF" Offset="1.0" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>
