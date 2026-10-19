@@ -421,25 +421,62 @@
                             </Grid.RowDefinitions>
 
                             <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                                <!-- Zoom Toolbar Controls: Đặt Dock=Right trước để luôn được ưu tiên giữ nguyên 100% khi cửa sổ thu nhỏ -->
+                                <Border DockPanel.Dock="Right" HorizontalAlignment="Right" Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" CornerRadius="6" Padding="2" Margin="6,0,0,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button x:Name="BtnZoomOut" ToolTip="Thu nhỏ (hoặc lăn chuột xuống)" Width="28" Height="26" Style="{StaticResource GlassIconButton}" Click="BtnZoomOut_Click">
+                                            <ui:SymbolIcon Symbol="ZoomOut20" FontSize="14"/>
+                                        </Button>
+                                        <TextBlock x:Name="TxtZoomPercent" Text="100%" Width="42" TextAlignment="Center" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <Button x:Name="BtnZoomIn" ToolTip="Phóng to (hoặc lăn chuột lên)" Width="28" Height="26" Style="{StaticResource GlassIconButton}" Click="BtnZoomIn_Click">
+                                            <ui:SymbolIcon Symbol="ZoomIn20" FontSize="14"/>
+                                        </Button>
+                                        <Button x:Name="BtnZoomFit" ToolTip="Vừa khung hình (hoặc nhấp đúp ảnh)" Width="28" Height="26" Style="{StaticResource GlassIconButton}" Click="BtnZoomFit_Click" Margin="2,0,0,0">
+                                            <ui:SymbolIcon Symbol="ArrowCounterclockwise20" FontSize="13"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Title and Info Header -->
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <ui:SymbolIcon Symbol="Image24" Foreground="#38BDF8" FontSize="18" Margin="0,0,8,0"/>
+                                    <ui:SymbolIcon Symbol="Image24" Foreground="#38BDF8" FontSize="18" Margin="0,0,6,0"/>
                                     <TextBlock Text="Xem Trước Ảnh" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource TextFillColorPrimaryBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="TxtPreviewInfo" Margin="10,0,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="180"/>
+                                    <TextBlock x:Name="TxtPreviewInfo" Margin="8,0,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </DockPanel>
 
                             <!-- Preview Image Display Box with Zoom/Pan container -->
                             <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource GlassPreviewBackgroundBrush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" ClipToBounds="True">
                                 <Grid>
-                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                        <Image x:Name="ImgPreview" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Margin="6"/>
+                                    <ScrollViewer x:Name="ScrollPreview" 
+                                                  HorizontalScrollBarVisibility="Auto" 
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  PreviewMouseWheel="ScrollPreview_PreviewMouseWheel"
+                                                  PanningMode="Both">
+                                        <Grid x:Name="ImgPreviewContainer"
+                                              Background="Transparent"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              MouseLeftButtonDown="ImgPreviewContainer_MouseLeftButtonDown"
+                                              MouseLeftButtonUp="ImgPreviewContainer_MouseLeftButtonUp"
+                                              MouseMove="ImgPreviewContainer_MouseMove"
+                                              MouseLeave="ImgPreviewContainer_MouseLeave">
+                                            <Image x:Name="ImgPreview" 
+                                                   Stretch="None" 
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   Cursor="Hand">
+                                                <Image.LayoutTransform>
+                                                    <ScaleTransform x:Name="PreviewScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+                                                </Image.LayoutTransform>
+                                            </Image>
+                                        </Grid>
                                     </ScrollViewer>
 
                                     <!-- Placeholder when no image is selected -->
-                                    <StackPanel x:Name="PreviewEmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel x:Name="PreviewEmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                         <ui:SymbolIcon Symbol="ImageOff24" FontSize="40" Foreground="{DynamicResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center"/>
                                         <TextBlock Text="Chưa chọn ảnh nào để xem trước" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="13" Margin="0,8,0,0" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="Nhấp vào một ảnh trong danh sách bên trái để phóng to" Foreground="{DynamicResource TextFillColorTertiaryBrush}" FontSize="11" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Nhấp vào một ảnh trong danh sách bên trái để xem" Foreground="{DynamicResource TextFillColorTertiaryBrush}" FontSize="11" Margin="0,4,0,0" HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>

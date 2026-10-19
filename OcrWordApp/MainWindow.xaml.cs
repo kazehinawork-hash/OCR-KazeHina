@@ -240,6 +240,7 @@ public partial class MainWindow : FluentWindow
                 ImgPreview.Source = bmp;
                 PreviewEmptyHint.Visibility = Visibility.Collapsed;
                 TxtPreviewInfo.Text = $"Trang {item.IndexNumber} • {bmp.PixelWidth}x{bmp.PixelHeight}px • {item.DisplayName}";
+                FitImageToView();
             }
             catch (Exception ex)
             {
@@ -261,6 +262,7 @@ public partial class MainWindow : FluentWindow
                     ImgPreview.Source = bmp;
                     PreviewEmptyHint.Visibility = Visibility.Collapsed;
                     TxtPreviewInfo.Text = $"Trang {item.IndexNumber} • {gdi.Width}x{gdi.Height}px • {item.DisplayName}";
+                    FitImageToView();
                 }
                 catch
                 {
@@ -275,8 +277,144 @@ public partial class MainWindow : FluentWindow
             ImgPreview.Source = null;
             PreviewEmptyHint.Visibility = Visibility.Visible;
             TxtPreviewInfo.Text = "";
+            ResetPreviewZoom();
         }
     }
+
+    #region Image Preview Zoom & Pan Controls
+    private double _currentZoom = 1.0;
+    private const double MinZoom = 0.1;
+    private const double MaxZoom = 8.0;
+    private bool _isPanning = false;
+    private System.Windows.Point _panStartPoint;
+    private double _startHOffset;
+    private double _startVOffset;
+
+    private void SetPreviewZoom(double zoom)
+    {
+        _currentZoom = Math.Clamp(zoom, MinZoom, MaxZoom);
+        if (PreviewScaleTransform != null)
+        {
+            PreviewScaleTransform.ScaleX = _currentZoom;
+            PreviewScaleTransform.ScaleY = _currentZoom;
+        }
+        if (TxtZoomPercent != null)
+        {
+            TxtZoomPercent.Text = $"{Math.Round(_currentZoom * 100)}%";
+        }
+    }
+
+    private void ResetPreviewZoom()
+    {
+        SetPreviewZoom(1.0);
+    }
+
+    private void FitImageToView()
+    {
+        if (ImgPreview?.Source == null || ScrollPreview == null)
+        {
+            ResetPreviewZoom();
+            return;
+        }
+
+        var viewportWidth = ScrollPreview.ActualWidth > 20 ? ScrollPreview.ActualWidth - 16 : 300;
+        var viewportHeight = ScrollPreview.ActualHeight > 20 ? ScrollPreview.ActualHeight - 16 : 400;
+
+        var imgWidth = ImgPreview.Source.Width;
+        var imgHeight = ImgPreview.Source.Height;
+
+        if (imgWidth <= 0 || imgHeight <= 0)
+        {
+            ResetPreviewZoom();
+            return;
+        }
+
+        var scaleX = viewportWidth / imgWidth;
+        var scaleY = viewportHeight / imgHeight;
+        var fitScale = Math.Min(scaleX, scaleY);
+
+        if (fitScale <= 0) fitScale = 1.0;
+        SetPreviewZoom(fitScale);
+
+        ScrollPreview.ScrollToHorizontalOffset(0);
+        ScrollPreview.ScrollToVerticalOffset(0);
+    }
+
+    private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
+    {
+        SetPreviewZoom(_currentZoom * 1.25);
+    }
+
+    private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
+    {
+        SetPreviewZoom(_currentZoom / 1.25);
+    }
+
+    private void BtnZoomFit_Click(object sender, RoutedEventArgs e)
+    {
+        FitImageToView();
+    }
+
+    private void ScrollPreview_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        if (ImgPreview?.Source == null) return;
+
+        e.Handled = true;
+        var factor = e.Delta > 0 ? 1.15 : 1 / 1.15;
+        SetPreviewZoom(_currentZoom * factor);
+    }
+
+    private void ImgPreviewContainer_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            // Nhấp đúp: Reset / Fit
+            FitImageToView();
+            return;
+        }
+
+        if (ImgPreview?.Source == null || ScrollPreview == null) return;
+
+        _isPanning = true;
+        _panStartPoint = e.GetPosition(ScrollPreview);
+        _startHOffset = ScrollPreview.HorizontalOffset;
+        _startVOffset = ScrollPreview.VerticalOffset;
+        ImgPreviewContainer.CaptureMouse();
+        ImgPreview.Cursor = System.Windows.Input.Cursors.SizeAll;
+    }
+
+    private void ImgPreviewContainer_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (!_isPanning || ScrollPreview == null) return;
+
+        var currentPoint = e.GetPosition(ScrollPreview);
+        var deltaX = currentPoint.X - _panStartPoint.X;
+        var deltaY = currentPoint.Y - _panStartPoint.Y;
+
+        ScrollPreview.ScrollToHorizontalOffset(_startHOffset - deltaX);
+        ScrollPreview.ScrollToVerticalOffset(_startVOffset - deltaY);
+    }
+
+    private void ImgPreviewContainer_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (_isPanning)
+        {
+            _isPanning = false;
+            ImgPreviewContainer.ReleaseMouseCapture();
+            ImgPreview.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+    }
+
+    private void ImgPreviewContainer_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (_isPanning)
+        {
+            _isPanning = false;
+            ImgPreviewContainer.ReleaseMouseCapture();
+            ImgPreview.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+    }
+    #endregion
 
     private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
     {
