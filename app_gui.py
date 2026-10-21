@@ -1,9 +1,12 @@
 import os
 import sys
 import threading
+import tempfile
+import time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
+from PIL import ImageGrab
 from ocr_converter import load_images_from_paths, convert_images_to_word_html
 from prompt_template import SYSTEM_PROMPT
 
@@ -19,6 +22,33 @@ class App(tk.Tk):
         # Style cấu hình giao diện hiện đại
         self.style = ttk.Style(self)
         self.style.theme_use("clam")
+        
+        # Cấu hình hiệu ứng hover và style cho ttk widgets
+        self.style.configure(
+            "TButton",
+            font=("Segoe UI", 9),
+            padding=(10, 4),
+            relief="flat",
+            borderwidth=1
+        )
+        self.style.map(
+            "TButton",
+            background=[("active", "#e0e7ff"), ("pressed", "#c7d2fe"), ("!disabled", "#f1f5f9")],
+            foreground=[("active", "#1e3a8a"), ("!disabled", "#0f172a")],
+            relief=[("pressed", "sunken"), ("!pressed", "flat")]
+        )
+        self.style.configure(
+            "TLabelframe",
+            background="#f8fafc",
+            relief="groove",
+            borderwidth=1
+        )
+        self.style.configure(
+            "TLabelframe.Label",
+            font=("Segoe UI", 9, "bold"),
+            foreground="#1e293b",
+            background="#f8fafc"
+        )
         
         self.selected_files = []
         self.api_key = self.load_saved_api_key()
@@ -105,12 +135,41 @@ class App(tk.Tk):
         list_container = ttk.Frame(file_group)
         list_container.pack(fill="both", expand=True)
 
-        self.file_listbox = tk.Listbox(list_container, selectmode=tk.EXTENDED, font=("Consolas", 10))
+        self.file_listbox = tk.Listbox(
+            list_container,
+            selectmode=tk.EXTENDED,
+            font=("Consolas", 10),
+            bg="#ffffff",
+            selectbackground="#0284c7",
+            selectforeground="#ffffff",
+            activestyle="none",
+            relief="solid",
+            borderwidth=1,
+            highlightthickness=1,
+            highlightcolor="#38bdf8",
+            highlightbackground="#cbd5e1"
+        )
         self.file_listbox.pack(side="left", fill="both", expand=True)
 
         scrollbar = ttk.Scrollbar(list_container, orient="vertical", command=self.file_listbox.yview)
         scrollbar.pack(side="right", fill="y")
         self.file_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Context Menu (Menu chuột phải) cho danh sách file
+        self.context_menu = tk.Menu(self, tearoff=0)
+        self.context_menu.add_command(label="📋 Dán ảnh từ Clipboard (Ctrl+V)", command=self.paste_image_from_clipboard)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="➕ Thêm file ảnh...", command=self.add_images)
+        self.context_menu.add_command(label="📄 Thêm file PDF...", command=self.add_pdf)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="❌ Xóa các mục đã chọn", command=self.remove_selected)
+        self.context_menu.add_command(label="🧹 Xóa toàn bộ danh sách", command=self.clear_all)
+
+        # Ràng buộc sự kiện click chuột phải (Windows: <Button-3>) & phím tắt Ctrl+V, Delete
+        self.file_listbox.bind("<Button-3>", self.show_context_menu)
+        self.bind("<Control-v>", lambda e: self.paste_image_from_clipboard())
+        self.bind("<Control-V>", lambda e: self.paste_image_from_clipboard())
+        self.file_listbox.bind("<Delete>", lambda e: self.remove_selected())
 
         # 3. Execution & Status Group
         action_group = ttk.Frame(main_frame)
@@ -125,12 +184,16 @@ class App(tk.Tk):
             activebackground="#0369a1",
             activeforeground="white",
             padx=15,
-            pady=8,
+            pady=10,
             cursor="hand2",
             relief="flat",
             command=self.start_conversion
         )
         self.btn_convert.pack(fill="x")
+
+        # Hiệu ứng hover cho nút chuyển đổi chính
+        self.btn_convert.bind("<Enter>", lambda e: self.btn_convert.config(bg="#0369a1") if str(self.btn_convert["state"]) != "disabled" else None)
+        self.btn_convert.bind("<Leave>", lambda e: self.btn_convert.config(bg="#0284c7") if str(self.btn_convert["state"]) != "disabled" else None)
 
         # Progress & Status Bar
         self.status_var = tk.StringVar(value="Sẵn sàng.")
@@ -139,6 +202,61 @@ class App(tk.Tk):
 
         self.progress_bar = ttk.Progressbar(main_frame, mode="indeterminate")
         self.progress_bar.pack(fill="x", pady=(2, 0))
+
+    def show_context_menu(self, event):
+        # Nếu click chuột phải vào một dòng cụ thể mà dòng đó chưa được chọn, chuyển vùng chọn sang dòng đó
+        clicked_idx = self.file_listbox.nearest(event.y)
+        if clicked_idx >= 0 and self.file_listbox.size() > 0:
+            if clicked_idx not in self.file_listbox.curselection():
+                self.file_listbox.selection_clear(0, tk.END)
+                self.file_listbox.selection_set(clicked_idx)
+                self.file_listbox.activate(clicked_idx)
+        
+        # Bật/tắt trạng thái của nút Xóa tùy theo có phần tử được chọn hay danh sách trống
+        has_selection = bool(self.file_listbox.curselection())
+        has_items = self.file_listbox.size() > 0
+        self.context_menu.entryconfig("❌ Xóa các mục đã chọn", state="normal" if has_selection else "disabled")
+        self.context_menu.entryconfig("🧹 Xóa toàn bộ danh sách", state="normal" if has_items else "disabled")
+
+        self.context_menu.tk_popup(event.x_root, event.y_root)
+
+    def paste_image_from_clipboard(self):
+        try:
+            img = ImageGrab.grabclipboard()
+            if img is None:
+                messagebox.showinfo("Clipboard", "Không tìm thấy dữ liệu hình ảnh trong Clipboard.\n\nHãy chụp màn hình (Win + Shift + S) hoặc Copy một ảnh rồi dán lại!")
+                return
+
+            # Nếu clipboard chứa danh sách file path
+            if isinstance(img, list):
+                added_count = 0
+                for path_str in img:
+                    p = Path(path_str)
+                    if p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff", ".pdf"]:
+                        if str(p) not in self.selected_files:
+                            self.selected_files.append(str(p))
+                            self.file_listbox.insert(tk.END, str(p))
+                            added_count += 1
+                if added_count > 0:
+                    self.update_status(f"Đã dán {added_count} file từ clipboard.")
+                else:
+                    messagebox.showinfo("Clipboard", "Các file trong clipboard không đúng định dạng ảnh hoặc PDF.")
+                return
+
+            # Nếu clipboard là đối tượng ảnh chụp màn hình / copy ảnh trực tiếp
+            temp_dir = Path(tempfile.gettempdir()) / "ocr_word_pasted_images"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = int(time.time() * 1000)
+            pasted_file = temp_dir / f"pasted_image_{timestamp}.png"
+            img.save(pasted_file, format="PNG")
+
+            pasted_path_str = str(pasted_file)
+            self.selected_files.append(pasted_path_str)
+            self.file_listbox.insert(tk.END, f"[Ảnh dán] {pasted_file.name} -> {pasted_path_str}")
+            self.update_status(f"Đã dán ảnh thành công: {pasted_file.name}")
+
+        except Exception as e:
+            messagebox.showerror("Lỗi dán ảnh", f"Không thể lấy ảnh từ Clipboard: {str(e)}")
 
     def add_images(self):
         files = filedialog.askopenfilenames(

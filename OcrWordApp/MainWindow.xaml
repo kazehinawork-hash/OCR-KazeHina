@@ -4,7 +4,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         Title="OCR Đề Thi Sang Microsoft Word HTML" 
         Height="800" Width="1180" 
-        MinWidth="1120" MinHeight="680"
+        MinWidth="960" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         WindowBackdropType="Acrylic" ExtendsContentIntoTitleBar="True" WindowCornerPreference="Round"
         Background="Transparent"
@@ -13,7 +13,6 @@
         RenderOptions.ClearTypeHint="Enabled"
         RenderOptions.BitmapScalingMode="HighQuality"
         AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
-
     <Grid>
         <Grid.RowDefinitions>
             <!-- TitleBar Row -->
@@ -21,7 +20,6 @@
             <!-- Main Content Container -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
         <!-- BACKDROP / CUSTOM WALLPAPER LAYER (Dual-Layer: Deep Blur Wings + Foreground Content) -->
         <Grid Grid.RowSpan="2" IsHitTestVisible="False" ClipToBounds="True">
             <!-- Lớp 1: Nền mờ nghệ thuật sâu (Deep Blur Backdrop) phủ kín toàn màn hình, xóa tan viền đen -->
@@ -33,7 +31,6 @@
                     <BlurEffect Radius="35" KernelType="Gaussian" RenderingBias="Performance"/>
                 </Image.Effect>
             </Image>
-
             <!-- Lớp 2: Ảnh nền chính với chế độ hiển thị tùy chọn (Fit & Blur / Fill / Center / Tự do) -->
             <Image x:Name="ImgCustomBackground" Stretch="Uniform" VerticalAlignment="Center" HorizontalAlignment="Center" 
                    RenderTransformOrigin="0,0"
@@ -45,15 +42,12 @@
                     </TransformGroup>
                 </Image.RenderTransform>
             </Image>
-
             <!-- Lớp phủ tối mỏng giúp text & panel luôn đọc rõ ràng -->
             <Border x:Name="CustomBgOverlay" Background="#35000000" Visibility="Collapsed"/>
-
             <!-- Lớp đón bắt tương tác chuột Kéo rê & Lăn chuột trực tiếp (khi bật Chỉnh góc) -->
             <Border x:Name="PanInteractiveOverlay" Background="#01000000" Visibility="Collapsed" IsHitTestVisible="False"
                     MouseDown="PanOverlay_MouseDown" MouseMove="PanOverlay_MouseMove" MouseUp="PanOverlay_MouseUp" MouseWheel="PanOverlay_MouseWheel"/>
         </Grid>
-
         <!-- TOP TITLEBAR -->
         <ui:TitleBar Grid.Row="0">
             <ui:TitleBar.Header>
@@ -79,7 +73,6 @@
                                 <TextBlock x:Name="TxtThemeMode" Text="Dark" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                         </ui:Button>
-
                         <!-- Custom Background Buttons -->
                         <ui:Button x:Name="BtnChangeBackground" Margin="6,0,0,0" Padding="8,4" CornerRadius="12"
                                    Background="{DynamicResource GlassButtonNormalBrush}"
@@ -91,7 +84,6 @@
                                 <TextBlock Text="Đổi nền" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                         </ui:Button>
-
                         <!-- Background Fit Mode Toggle Button -->
                         <ui:Button x:Name="BtnBgFitMode" Margin="4,0,0,0" Padding="8,4" CornerRadius="12"
                                    Background="{DynamicResource GlassButtonNormalBrush}"
@@ -104,7 +96,6 @@
                                 <TextBlock x:Name="TxtBgFitMode" Text="Vừa vặn" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                         </ui:Button>
-
                         <!-- Nút Khóa / Lưu góc ảnh khi ở chế độ Tùy chỉnh -->
                         <ui:Button x:Name="BtnSaveCustomBg" Margin="4,0,0,0" Padding="8,4" CornerRadius="12"
                                    Background="#2010B981"
@@ -117,7 +108,6 @@
                                 <TextBlock x:Name="TxtSaveCustomBg" Text="Lưu &amp; Khóa góc" FontSize="11" FontWeight="SemiBold" Foreground="#34D399"/>
                             </StackPanel>
                         </ui:Button>
-
                         <ui:Button x:Name="BtnClearBackground" Margin="4,0,0,0" Padding="6,4" CornerRadius="12"
                                    Background="{DynamicResource GlassButtonNormalBrush}"
                                    BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="0.8"
@@ -127,7 +117,6 @@
                             <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" Foreground="#F87171"/>
                         </ui:Button>
                     </StackPanel>
-
                     <!-- Busy Indicator Badge on TitleBar -->
                     <StackPanel x:Name="BusyBadge" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Visibility="Collapsed">
                         <ui:ProgressRing IsIndeterminate="True" Width="16" Height="16" Margin="0,0,8,0"/>
@@ -137,7 +126,6 @@
                 </Grid>
             </ui:TitleBar.Header>
         </ui:TitleBar>
-
         <!-- UNIFIED GLASS CONTAINER (Theme LiquidGlass) -->
         <Border x:Name="MainGlassContainer" Grid.Row="1" Margin="8,0,8,8" CornerRadius="12" ClipToBounds="True"
                 BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
@@ -151,7 +139,6 @@
                     <!-- Footer Status Bar -->
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
                 <!-- 1. SETTINGS BAR (LiquidGlass Style - 2 Cột Cân Đối, Sang Trọng) -->
                 <Border Grid.Row="0" Margin="14,14,14,10" Padding="14,10" 
                         Background="{DynamicResource GlassElementBackgroundBrush}" 
@@ -166,14 +153,12 @@
                             <!-- Cột 2: Kiểu màu chữ -->
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-
                         <!-- Nhóm 1: Định dạng đáp án ABCD -->
                         <Grid Grid.Column="0" Margin="4,0,16,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,14,0">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:SymbolIcon Symbol="TextBulletListSquare20" FontSize="16" Foreground="#38BDF8" Margin="0,0,6,0"/>
@@ -181,44 +166,37 @@
                                 </StackPanel>
                                 <TextBlock Text="Căn lề phím Tab, Bảng ẩn viền hoặc Dấu cách" FontSize="10.5" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="22,2,0,0"/>
                             </StackPanel>
-
                             <ComboBox x:Name="CmbOptionFormat" Grid.Column="1" Height="36" VerticalContentAlignment="Center" SelectedIndex="2" HorizontalAlignment="Stretch">
                                 <ComboBoxItem Content="Dạng phím Tab"/>
                                 <ComboBoxItem Content="Dạng bảng ẩn viền (Table)"/>
                                 <ComboBoxItem Content="Dạng dấu cách (Mặc định)"/>
                             </ComboBox>
                         </Grid>
-
                         <!-- Đường kẻ ngăn cách nhẹ nhàng -->
                         <Rectangle Grid.Column="1" Width="1" VerticalAlignment="Stretch" Margin="0,4" Fill="#33808080"/>
-
                         <!-- Nhóm 2: Kiểu màu chữ -->
                         <Grid Grid.Column="2" Margin="16,0,4,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,14,0">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:SymbolIcon Symbol="Color20" FontSize="16" Foreground="#EC4899" Margin="0,0,6,0"/>
-                                    <TextBlock Text="Kiểu màu sắc đề thi" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="13"/>
+                                    <TextBlock Text="Kiểu màu sắc" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" FontSize="13"/>
                                 </StackPanel>
                                 <TextBlock Text="Giữ màu gốc hoặc chuyển toàn bộ Đen trắng" FontSize="10.5" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="22,2,0,0"/>
                             </StackPanel>
-
                             <ComboBox x:Name="CmbColorStyle" Grid.Column="1" Height="36" VerticalContentAlignment="Center" SelectedIndex="1" HorizontalAlignment="Stretch">
                                 <ComboBoxItem Content="Màu như ảnh gốc"/>
                                 <ComboBoxItem Content="Đen trắng (Mặc định)"/>
                             </ComboBox>
                         </Grid>
-
                         <!-- Model Combo & Refresh (Ẩn trong code để tự động hóa hoàn toàn) -->
                         <ComboBox x:Name="CmbModel" Visibility="Collapsed"/>
                         <Button x:Name="BtnRefreshModels" Visibility="Collapsed" Click="BtnRefreshModels_Click"/>
                     </Grid>
                 </Border>
-
                 <!-- 2. WORKSPACE GRID -->
                 <Grid Grid.Row="1" Margin="14,0,14,10">
                     <Grid.ColumnDefinitions>
@@ -227,20 +205,17 @@
                         <!-- Right: Standard & Format Preview Guidelines -->
                         <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
-
                     <!-- LEFT CARD: File List -->
                     <Border Grid.Column="0" Margin="0,0,8,0" Padding="14"
                             Background="{DynamicResource GlassElementBackgroundBrush}"
                             BorderBrush="{DynamicResource GlassGradientBorderBrush}"
-                            BorderThickness="0.8" CornerRadius="10">
+                            BorderThickness="0.8" CornerRadius="10" ClipToBounds="False">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/> <!-- Title Header -->
-                                <RowDefinition Height="Auto"/> <!-- Button Toolbar -->
                                 <RowDefinition Height="*"/>    <!-- File ListBox -->
                                 <RowDefinition Height="Auto"/> <!-- Convert Button -->
                             </Grid.RowDefinitions>
-
                             <!-- Title Header -->
                             <DockPanel Grid.Row="0" Margin="0,0,0,8" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -255,54 +230,81 @@
                                                Foreground="{DynamicResource GlassBadgeForegroundBrush}"/>
                                 </Border>
                             </DockPanel>
-
-                            <!-- Button Toolbar (WrapPanel tự xuống dòng mượt mà nếu thiếu chỗ, không bao giờ đè chữ) -->
-                            <WrapPanel Grid.Row="1" Margin="0,0,0,10" VerticalAlignment="Center">
-                                <ui:Button Padding="12,6" Margin="0,0,6,6"
-                                           Style="{StaticResource InteractiveButtonNeon}"
-                                           Cursor="Hand" Click="BtnPasteClipboard_Click">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <ui:SymbolIcon Symbol="ClipboardPaste24" FontSize="16" Foreground="#FFFFFF" Margin="0,0,6,0"/>
-                                        <TextBlock Text="Dán Ảnh (Ctrl+V)" FontSize="12.5" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </ui:Button>
-                                <ui:Button Content="Thêm Ảnh" Padding="10,6" Margin="0,0,6,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" Cursor="Hand" Click="BtnAddImages_Click"/>
-                                <ui:Button Content="Thêm PDF" Padding="10,6" Margin="0,0,6,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" Cursor="Hand" Click="BtnAddPdf_Click"/>
-                                <ui:Button Content="▲ Lên" ToolTip="Di chuyển trang lên trên" Padding="10,6" Margin="0,0,4,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="#38BDF8" FontWeight="SemiBold" Cursor="Hand" Click="BtnMoveUp_Click"/>
-                                <ui:Button Content="▼ Xuống" ToolTip="Di chuyển trang xuống dưới" Padding="10,6" Margin="0,0,6,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="#38BDF8" FontWeight="SemiBold" Cursor="Hand" Click="BtnMoveDown_Click"/>
-                                <ui:Button Content="Xóa" ToolTip="Xóa mục đã chọn" Padding="10,6" Margin="0,0,6,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="#F87171" Cursor="Hand" Click="BtnRemoveSelected_Click"/>
-                                <ui:Button Content="Dọn hết" ToolTip="Xóa toàn bộ danh sách" Padding="10,6" Margin="0,0,0,6"
-                                           Background="{DynamicResource GlassButtonNormalBrush}" BorderBrush="{DynamicResource GlassGradientBorderBrush}" BorderThickness="1"
-                                           Foreground="#94A3B8" Cursor="Hand" Click="BtnClearAll_Click"/>
-                            </WrapPanel>
-
                             <!-- File ListBox With Thumbnails -->
-                            <Border Grid.Row="2" CornerRadius="8" Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8">
-                                <Grid>
-                                    <ListBox x:Name="LstFiles" SelectionMode="Single" Background="Transparent" BorderThickness="0" Padding="6"
-                                             VirtualizingPanel.IsVirtualizing="True"
-                                             VirtualizingPanel.VirtualizationMode="Recycling"
-                                             ScrollViewer.CanContentScroll="True"
-                                             SelectionChanged="LstFiles_SelectionChanged">
+                            <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" ClipToBounds="False">
+                                <Grid ClipToBounds="False">
+                                    <ListBox x:Name="LstFiles" SelectionMode="Single" Background="Transparent" BorderThickness="0" Padding="10,6" ClipToBounds="False"
+                                             VirtualizingPanel.IsVirtualizing="False"
+                                             ScrollViewer.CanContentScroll="False"
+                                             SelectionChanged="LstFiles_SelectionChanged"
+                                             PreviewMouseLeftButtonDown="LstFiles_PreviewMouseLeftButtonDown"
+                                             PreviewMouseLeftButtonUp="LstFiles_PreviewMouseLeftButtonUp"
+                                             MouseLeave="LstFiles_MouseLeave"
+                                             PreviewMouseMove="LstFiles_PreviewMouseMove"
+                                             Drop="LstFiles_Drop"
+                                             DragOver="LstFiles_DragOver"
+                                             AllowDrop="True">
+                                        <ListBox.ContextMenu>
+                                            <ContextMenu x:Name="FileListContextMenu" Opened="FileListContextMenu_Opened">
+                                                <MenuItem Header="Dán ảnh từ Clipboard (Ctrl+V)" Click="BtnPasteClipboard_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="ClipboardPaste24" FontSize="16" Foreground="#38BDF8"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem Header="Thêm Ảnh..." Click="BtnAddImages_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="Image24" FontSize="16" Foreground="#10B981"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="Thêm PDF..." Click="BtnAddPdf_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="DocumentPdf24" FontSize="16" Foreground="#F59E0B"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem x:Name="MnuMoveUp" Header="Chuyển lên trên" Click="BtnMoveUp_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="ArrowUp24" FontSize="16" Foreground="#38BDF8"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem x:Name="MnuMoveDown" Header="Chuyển xuống dưới" Click="BtnMoveDown_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="ArrowDown24" FontSize="16" Foreground="#38BDF8"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem x:Name="MnuRemoveSelected" Header="Xóa mục đã chọn (Delete)" Click="BtnRemoveSelected_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="Delete24" FontSize="16" Foreground="#EF4444"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem x:Name="MnuClearAll" Header="Xóa toàn bộ danh sách" Click="BtnClearAll_Click">
+                                                    <MenuItem.Icon>
+                                                        <ui:SymbolIcon Symbol="Broom24" FontSize="16" Foreground="#94A3B8"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </ListBox.ContextMenu>
                                         <ListBox.ItemContainerStyle>
                                             <Style TargetType="ListBoxItem">
                                                 <Setter Property="Background" Value="{DynamicResource GlassButtonNormalBrush}"/>
                                                 <Setter Property="BorderBrush" Value="{DynamicResource GlassGradientBorderBrush}"/>
                                                 <Setter Property="BorderThickness" Value="0.8"/>
                                                 <Setter Property="Padding" Value="8,6"/>
-                                                <Setter Property="Margin" Value="0,3"/>
+                                                <Setter Property="Margin" Value="4,3"/>
                                                 <Setter Property="Cursor" Value="Hand"/>
+                                                <Setter Property="ClipToBounds" Value="False"/>
                                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <TransformGroup>
+                                                            <ScaleTransform ScaleX="1.0" ScaleY="1.0"/>
+                                                            <TranslateTransform X="0" Y="{Binding DragOffsetY}"/>
+                                                        </TransformGroup>
+                                                    </Setter.Value>
+                                                </Setter>
                                                 <Setter Property="Template">
                                                     <Setter.Value>
                                                         <ControlTemplate TargetType="ListBoxItem">
@@ -324,7 +326,7 @@
                                                                     <Setter TargetName="ItemHost" Property="Background" Value="{DynamicResource GlassButtonHoverBrush}"/>
                                                                     <Setter TargetName="ItemHost" Property="BorderBrush" Value="{DynamicResource GlassGradientBorderHoverBrush}"/>
                                                                 </MultiTrigger>
-                                                                <!-- Khi được chọn: Chỉ 1 khung duy nhất phát sáng Neon Cyan (#00F0FF) rực rỡ, không bị 2 khung lồng nhau -->
+                                                                <!-- Khi được chọn: Chỉ 1 khung duy nhất phát sáng Neon Cyan (#00F0FF) rực rỡ -->
                                                                 <Trigger Property="IsSelected" Value="True">
                                                                     <Setter TargetName="ItemHost" Property="BorderBrush" Value="#00F0FF"/>
                                                                     <Setter TargetName="ItemHost" Property="BorderThickness" Value="1.4"/>
@@ -335,6 +337,67 @@
                                                                         </Setter.Value>
                                                                     </Setter>
                                                                 </Trigger>
+                                                                <!-- Hiệu ứng thở (Breathing / Pulse) khi người dùng nhấn giữ chuột chuẩn bị kéo -->
+                                                                <DataTrigger Binding="{Binding IsHolding}" Value="True">
+                                                                    <Setter TargetName="ItemHost" Property="BorderBrush" Value="#38BDF8"/>
+                                                                    <Setter TargetName="ItemHost" Property="Background" Value="#350284C7"/>
+                                                                    <Setter TargetName="ItemHost" Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <DropShadowEffect Color="#38BDF8" BlurRadius="18" ShadowDepth="0" Opacity="0.85"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                    <Setter Property="Panel.ZIndex" Value="500"/>
+                                                                    <DataTrigger.EnterActions>
+                                                                        <BeginStoryboard x:Name="BreathingStoryboard">
+                                                                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                                <!-- Co giãn khung viền to nhỏ nhịp nhàng (Breathing Scale 1.0 -> 1.035) -->
+                                                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                                                                 From="1.0" To="1.035" Duration="0:0:0.65">
+                                                                                    <DoubleAnimation.EasingFunction>
+                                                                                        <SineEase EasingMode="EaseInOut"/>
+                                                                                    </DoubleAnimation.EasingFunction>
+                                                                                </DoubleAnimation>
+                                                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                                                                 From="1.0" To="1.035" Duration="0:0:0.65">
+                                                                                    <DoubleAnimation.EasingFunction>
+                                                                                        <SineEase EasingMode="EaseInOut"/>
+                                                                                    </DoubleAnimation.EasingFunction>
+                                                                                </DoubleAnimation>
+                                                                                <!-- Độ dày viền thở phập phồng (1.2 -> 2.4) -->
+                                                                                <ThicknessAnimation Storyboard.TargetName="ItemHost" Storyboard.TargetProperty="BorderThickness"
+                                                                                                    From="1.2" To="2.4" Duration="0:0:0.65">
+                                                                                    <ThicknessAnimation.EasingFunction>
+                                                                                        <SineEase EasingMode="EaseInOut"/>
+                                                                                    </ThicknessAnimation.EasingFunction>
+                                                                                </ThicknessAnimation>
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </DataTrigger.EnterActions>
+                                                                    <DataTrigger.ExitActions>
+                                                                        <StopStoryboard BeginStoryboardName="BreathingStoryboard"/>
+                                                                    </DataTrigger.ExitActions>
+                                                                </DataTrigger>
+                                                                <!-- Hiệu ứng nhổ ra kiểu iOS (Lift-up Floating: nhấc bổng, phóng to nhẹ 1.04, viền Neon Cyan, bóng đổ sâu 3D) -->
+                                                                <DataTrigger Binding="{Binding IsDragging}" Value="True">
+                                                                    <Setter TargetName="ItemHost" Property="Opacity" Value="0.92"/>
+                                                                    <Setter TargetName="ItemHost" Property="BorderBrush" Value="#00F0FF"/>
+                                                                    <Setter TargetName="ItemHost" Property="BorderThickness" Value="2.0"/>
+                                                                    <Setter TargetName="ItemHost" Property="Background" Value="#4500B4D8"/>
+                                                                    <Setter TargetName="ItemHost" Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <DropShadowEffect Color="#00F0FF" BlurRadius="25" ShadowDepth="6" Opacity="0.9"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                    <Setter Property="Panel.ZIndex" Value="999"/>
+                                                                    <Setter Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                            <TransformGroup>
+                                                                                <ScaleTransform ScaleX="1.04" ScaleY="1.04"/>
+                                                                                <TranslateTransform X="0" Y="{Binding DragOffsetY}"/>
+                                                                            </TransformGroup>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
                                                             </ControlTemplate.Triggers>
                                                         </ControlTemplate>
                                                     </Setter.Value>
@@ -349,12 +412,10 @@
                                                         <ColumnDefinition Width="60"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-
                                                     <!-- Thứ tự trang -->
                                                     <Border Grid.Column="0" Background="{DynamicResource GlassItemBadgeBackgroundBrush}" CornerRadius="12" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding IndexNumber}" Foreground="{DynamicResource GlassBadgeForegroundBrush}" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
-
                                                     <!-- Thumbnail ảnh xem nhanh -->
                                                     <Border Grid.Column="1" Width="56" Height="46" CornerRadius="4" 
                                                             Background="{DynamicResource GlassThumbnailBackgroundBrush}" 
@@ -362,7 +423,6 @@
                                                             BorderThickness="1" Margin="0,0,10,0" ClipToBounds="True">
                                                         <Image Source="{Binding Thumbnail}" Stretch="Uniform" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                     </Border>
-
                                                     <!-- Thông tin tệp -->
                                                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
@@ -372,7 +432,6 @@
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
-
                                     <!-- Empty placeholder text -->
                                     <StackPanel x:Name="EmptyHintPanel" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                         <ui:SymbolIcon Symbol="ArrowUpload24" FontSize="36" Foreground="{DynamicResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center"/>
@@ -382,14 +441,12 @@
                                     </StackPanel>
                                 </Grid>
                             </Border>
-
                             <!-- Action Buttons: Convert + Cancel -->
-                            <Grid Grid.Row="3" Margin="0,12,0,0">
+                            <Grid Grid.Row="2" Margin="0,12,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-
                                 <ui:Button x:Name="BtnConvert" Grid.Column="0" Height="48"
                                            FontSize="15" FontWeight="Bold"
                                            Style="{StaticResource InteractiveButtonNeon}"
@@ -399,7 +456,6 @@
                                         <TextBlock Text="Bắt đầu" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ui:Button>
-
                                 <ui:Button x:Name="BtnCancel" Grid.Column="1" Margin="10,0,0,0" Width="110" Height="48"
                                            Content="Hủy"
                                            FontSize="14" FontWeight="SemiBold"
@@ -408,7 +464,6 @@
                             </Grid>
                         </Grid>
                     </Border>
-
                     <!-- RIGHT CARD: High Resolution Image Preview Panel -->
                     <Border Grid.Column="1" Margin="8,0,0,0" Padding="14"
                             Background="{DynamicResource GlassElementBackgroundBrush}"
@@ -419,7 +474,6 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-
                             <DockPanel Grid.Row="0" Margin="0,0,0,10">
                                 <!-- Zoom Toolbar Controls: Đặt Dock=Right trước để luôn được ưu tiên giữ nguyên 100% khi cửa sổ thu nhỏ -->
                                 <Border DockPanel.Dock="Right" HorizontalAlignment="Right" Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" CornerRadius="6" Padding="2" Margin="6,0,0,0">
@@ -436,7 +490,6 @@
                                         </Button>
                                     </StackPanel>
                                 </Border>
-
                                 <!-- Title and Info Header -->
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:SymbolIcon Symbol="Image24" Foreground="#38BDF8" FontSize="18" Margin="0,0,6,0"/>
@@ -444,7 +497,6 @@
                                     <TextBlock x:Name="TxtPreviewInfo" Margin="8,0,0,0" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </DockPanel>
-
                             <!-- Preview Image Display Box with Zoom/Pan container -->
                             <Border Grid.Row="1" CornerRadius="8" Background="{DynamicResource GlassPreviewBackgroundBrush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" ClipToBounds="True">
                                 <Grid>
@@ -471,7 +523,6 @@
                                             </Image>
                                         </Grid>
                                     </ScrollViewer>
-
                                     <!-- Placeholder when no image is selected -->
                                     <StackPanel x:Name="PreviewEmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
                                         <ui:SymbolIcon Symbol="ImageOff24" FontSize="40" Foreground="{DynamicResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center"/>
@@ -483,7 +534,6 @@
                         </Grid>
                     </Border>
                 </Grid>
-
                 <!-- 3. FOOTER STATUS BAR -->
                 <Border Grid.Row="2" Background="{DynamicResource GlassElementBackground2Brush}" 
                         BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0,0.8,0,0" Padding="18,10">
@@ -492,20 +542,17 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="320"/>
                         </Grid.ColumnDefinitions>
-
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                             <ui:SymbolIcon Symbol="Info20" Foreground="#38BDF8" Margin="0,0,8,0"/>
                             <TextBlock x:Name="TxtStatus" Text="Sẵn sàng. Hãy thêm tài liệu để bắt đầu." 
                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12" VerticalAlignment="Center"/>
                         </StackPanel>
-
                         <!-- RGB Neon Rainbow Progress Bar with Percentage -->
                         <Grid Grid.Column="1" VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-
                             <!-- Bo tròn và Hiệu ứng RGB Neon cho Thanh Tiến Trình -->
                             <Border Grid.Column="0" Height="8" CornerRadius="4" ClipToBounds="True" Background="#20152538" BorderBrush="#35FFFFFF" BorderThickness="0.6">
                                 <ProgressBar x:Name="PrgBar" Height="8" BorderThickness="0" Background="Transparent"
@@ -521,7 +568,6 @@
                                     </ProgressBar.Foreground>
                                 </ProgressBar>
                             </Border>
-
                             <TextBlock x:Name="TxtProgressPercent" Grid.Column="1" Text="0%" 
                                        FontWeight="Bold" FontSize="11" Foreground="#38BDF8" 
                                        Margin="10,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"/>
@@ -530,7 +576,6 @@
                 </Border>
             </Grid>
         </Border>
-
         <!-- ===== LIQUID GLASS SUCCESS MODAL DIALOG (Bảng thông báo hoàn thành đồng bộ giao diện) ===== -->
         <Grid x:Name="SuccessModalOverlay" Grid.RowSpan="2" Visibility="Collapsed">
             <!-- Backdrop tối mờ chiều sâu -->
@@ -539,7 +584,6 @@
                     <BlurEffect Radius="15"/>
                 </Border.Effect>
             </Border>
-
             <!-- Card Kính Trung Tâm -->
             <Border Width="460" VerticalAlignment="Center" HorizontalAlignment="Center"
                     Background="{DynamicResource GlassElementBackgroundBrush}"
@@ -549,7 +593,6 @@
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="35" ShadowDepth="8" Opacity="0.45" Direction="270" Color="#000000"/>
                 </Border.Effect>
-
                 <Grid>
                     <!-- Quầng sáng Neon xanh ngọc lan tỏa ở góc trên -->
                     <Border Width="200" Height="200" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-100,-100,0"
@@ -558,7 +601,6 @@
                             <BlurEffect Radius="30"/>
                         </Border.Effect>
                     </Border>
-
                     <StackPanel>
                         <!-- Biểu tượng và Tiêu đề -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,16" VerticalAlignment="Center">
@@ -570,7 +612,6 @@
                                 <TextBlock Text="Tài liệu Microsoft Word HTML (.doc) đã sẵn sàng" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,2,0,0"/>
                             </StackPanel>
                         </StackPanel>
-
                         <!-- Khung thông tin file đã lưu -->
                         <Border Background="{DynamicResource GlassElementBackground2Brush}" BorderBrush="{DynamicResource GlassElementBorderBrush}" BorderThickness="0.8" CornerRadius="8" Padding="12" Margin="0,0,0,14">
                             <StackPanel>
@@ -579,17 +620,14 @@
                                 <TextBlock x:Name="TxtModalSkipNote" FontSize="11" Foreground="#F59E0B" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"/>
                             </StackPanel>
                         </Border>
-
                         <!-- Câu hỏi gợi ý -->
                         <TextBlock Text="Bạn có muốn mở ngay tập tin này bằng Microsoft Word không?" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,20"/>
-
                         <!-- Cặp nút hành động phong cách Liquid Glass -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="140"/>
                             </Grid.ColumnDefinitions>
-
                             <!-- Nút Mở File (Interactive Neon Glowing Button) -->
                             <ui:Button x:Name="BtnModalOpenWord" Grid.Column="0" Height="40" Margin="0,0,10,0"
                                        Style="{StaticResource InteractiveButtonNeon}"
@@ -599,7 +637,6 @@
                                     <TextBlock Text="Mở Microsoft Word" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </ui:Button>
-
                             <!-- Nút Để Sau (Glass Button) -->
                             <Button x:Name="BtnModalClose" Grid.Column="1" Height="40"
                                     Style="{StaticResource GlassPlainButton}"

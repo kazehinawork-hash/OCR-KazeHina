@@ -24,6 +24,34 @@ public class FileItem : INotifyPropertyChanged
     public string FileSizeText { get; set; } = "";
     public BitmapSource? Thumbnail { get; set; }
 
+    private bool _isHolding;
+    public bool IsHolding
+    {
+        get => _isHolding;
+        set { _isHolding = value; OnPropertyChanged(nameof(IsHolding)); }
+    }
+
+    private bool _isDragging;
+    public bool IsDragging
+    {
+        get => _isDragging;
+        set { _isDragging = value; OnPropertyChanged(nameof(IsDragging)); }
+    }
+
+    private bool _isDropTarget;
+    public bool IsDropTarget
+    {
+        get => _isDropTarget;
+        set { _isDropTarget = value; OnPropertyChanged(nameof(IsDropTarget)); }
+    }
+
+    private double _dragOffsetY;
+    public double DragOffsetY
+    {
+        get => _dragOffsetY;
+        set { _dragOffsetY = value; OnPropertyChanged(nameof(DragOffsetY)); }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
@@ -416,6 +444,9 @@ public partial class MainWindow : FluentWindow
     }
     #endregion
 
+    private Point _dragStartPoint;
+    private FileItem? _draggedItem;
+
     private void BtnMoveUp_Click(object sender, RoutedEventArgs e)
     {
         var idx = LstFiles.SelectedIndex;
@@ -423,6 +454,7 @@ public partial class MainWindow : FluentWindow
         {
             _fileItems.Move(idx, idx - 1);
             LstFiles.SelectedIndex = idx - 1;
+            ReindexItems();
         }
     }
 
@@ -433,8 +465,268 @@ public partial class MainWindow : FluentWindow
         {
             _fileItems.Move(idx, idx + 1);
             LstFiles.SelectedIndex = idx + 1;
+            ReindexItems();
         }
     }
+
+    #region Drag & Drop Reorder Danh Sách Ảnh (Hiệu ứng nhổ ra & đối chỗ mượt mà)
+    private FileItem? _currentDropTargetItem;
+
+    private void LstFiles_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(null);
+        var source = e.OriginalSource as DependencyObject;
+        var listBoxItem = FindVisualAncestor<System.Windows.Controls.ListBoxItem>(source);
+        if (listBoxItem != null)
+        {
+            _draggedItem = listBoxItem.DataContext as FileItem;
+            // Bắt đầu hiệu ứng thở (nhấn giữ nhấc lên tại chỗ, co giãn viền to nhỏ phập phồng)
+            if (_draggedItem != null)
+            {
+                _draggedItem.IsHolding = true;
+            }
+        }
+        else
+        {
+            _draggedItem = null;
+        }
+    }
+
+    private void LstFiles_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        // Khi người dùng nhả chuột mà chưa kịp kéo đi đâu, tắt hiệu ứng thở êm ái
+        StopHoldingAnimation();
+    }
+
+    private void LstFiles_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            StopHoldingAnimation();
+        }
+    }
+
+    private void StopHoldingAnimation()
+    {
+        if (_draggedItem != null)
+        {
+            _draggedItem.IsHolding = false;
+        }
+        foreach (var item in _fileItems)
+        {
+            item.IsHolding = false;
+        }
+    }
+
+    private void LstFiles_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _draggedItem == null)
+            return;
+
+        Point currentPos = e.GetPosition(null);
+        Vector diff = _dragStartPoint - currentPos;
+
+        if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+        {
+            try
+            {
+                // Chuyển từ trạng thái nhấn giữ (thở) sang trạng thái kéo nhấc bổng lướt đi
+                _draggedItem.IsHolding = false;
+                _draggedItem.IsDragging = true;
+
+                var data = new DataObject("ReorderFileItem", _draggedItem);
+                DragDrop.DoDragDrop(LstFiles, data, DragDropEffects.Move);
+            }
+            finally
+            {
+                // Khi kết thúc thao tác kéo (dù drop hay hủy), trả lại trạng thái bình thường
+                if (_draggedItem != null)
+                {
+                    _draggedItem.IsHolding = false;
+                    _draggedItem.IsDragging = false;
+                    _draggedItem = null;
+                }
+                ClearDropTargetHighlights();
+            }
+        }
+    }
+
+    private void LstFiles_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("ReorderFileItem") && _draggedItem != null)
+        {
+            e.Effects = DragDropEffects.Move;
+            var targetListBoxItem = FindVisualAncestor<System.Windows.Controls.ListBoxItem>(e.OriginalSource as DependencyObject);
+            var hoverTarget = targetListBoxItem?.DataContext as FileItem;
+
+            if (hoverTarget != null && hoverTarget != _draggedItem)
+            {
+                int oldIndex = _fileItems.IndexOf(_draggedItem);
+                int targetIndex = _fileItems.IndexOf(hoverTarget);
+
+                if (oldIndex >= 0 && targetIndex >= 0 && oldIndex != targetIndex)
+                {
+                    // 1. Tính toán khoảng cách thực tế giữa 2 thẻ ảnh
+                    double itemHeight = 58.0;
+                    if (targetListBoxItem != null && targetListBoxItem.ActualHeight > 20)
+                    {
+                        itemHeight = targetListBoxItem.ActualHeight + 6.0;
+                    }
+
+                    // Hướng đẩy trôi:
+                    // - Khi kéo xuống (targetIndex > oldIndex): item đích sẽ trượt từ dưới lên (tạo cảm giác trôi lên thế chỗ) -> fromOffsetY = +itemHeight
+                    // - Khi kéo lên (targetIndex < oldIndex): item đích sẽ trượt từ trên xuống (tạo cảm giác trôi xuống nhường chỗ) -> fromOffsetY = -itemHeight
+                    double pushDistance = (targetIndex > oldIndex) ? itemHeight : -itemHeight;
+
+                    // 2. Di chuyển item trong danh sách
+                    _fileItems.Move(oldIndex, targetIndex);
+                    LstFiles.SelectedIndex = targetIndex;
+                    ReindexItems();
+
+                    // 3. Kích hoạt chuyển động đàn hồi Spring Physics cực mịn
+                    AnimateItemShift(hoverTarget, pushDistance);
+                }
+            }
+            e.Handled = true;
+        }
+        else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            e.Effects = DragDropEffects.Copy;
+            e.Handled = true;
+        }
+    }
+
+    private class ItemSpringAnim
+    {
+        public FileItem Item { get; set; } = null!;
+        public double StartOffset { get; set; }
+        public DateTime StartTime { get; set; }
+        public double DurationMs { get; set; }
+    }
+
+    private readonly List<ItemSpringAnim> _activeSpringAnims = new();
+    private bool _isRenderingSpring = false;
+
+    private void AnimateItemShift(FileItem shiftedItem, double fromOffsetY)
+    {
+        // Nếu item đang có animation trước đó dở dang, cộng dồn quán tính mượt mà
+        lock (_activeSpringAnims)
+        {
+            var existing = _activeSpringAnims.FirstOrDefault(a => a.Item == shiftedItem);
+            double currentActualOffset = (existing != null) ? shiftedItem.DragOffsetY : 0.0;
+            double combinedStart = currentActualOffset + fromOffsetY;
+
+            shiftedItem.DragOffsetY = combinedStart;
+
+            if (existing != null)
+            {
+                existing.StartOffset = combinedStart;
+                existing.StartTime = DateTime.UtcNow;
+                existing.DurationMs = 380.0;
+            }
+            else
+            {
+                _activeSpringAnims.Add(new ItemSpringAnim
+                {
+                    Item = shiftedItem,
+                    StartOffset = combinedStart,
+                    StartTime = DateTime.UtcNow,
+                    DurationMs = 380.0
+                });
+            }
+
+            if (!_isRenderingSpring)
+            {
+                _isRenderingSpring = true;
+                System.Windows.Media.CompositionTarget.Rendering += OnSpringRenderingTick;
+            }
+        }
+    }
+
+    private void OnSpringRenderingTick(object? sender, EventArgs e)
+    {
+        lock (_activeSpringAnims)
+        {
+            var now = DateTime.UtcNow;
+            for (int i = _activeSpringAnims.Count - 1; i >= 0; i--)
+            {
+                var anim = _activeSpringAnims[i];
+                double elapsed = (now - anim.StartTime).TotalMilliseconds;
+                double progress = elapsed / anim.DurationMs;
+
+                if (progress >= 1.0)
+                {
+                    anim.Item.DragOffsetY = 0.0;
+                    _activeSpringAnims.RemoveAt(i);
+                }
+                else
+                {
+                    // Thuật toán Apple Spring Physics (Damped Harmonic Oscillator):
+                    // x(t) = e^(-damp * t) * cos(omega * t)
+                    // Mang lại cảm giác trượt dạt cực êm, có độ nảy vi mô đàn hồi như bong bóng/thạch
+                    double tSec = elapsed / 1000.0;
+                    double damping = 12.0; // Hệ số cản mềm mại
+                    double frequency = 16.0; // Tần số dao động nhũn êm
+                    double decay = Math.Exp(-damping * tSec);
+                    double oscillation = Math.Cos(frequency * tSec);
+                    anim.Item.DragOffsetY = anim.StartOffset * decay * oscillation;
+                }
+            }
+
+            if (_activeSpringAnims.Count == 0)
+            {
+                _isRenderingSpring = false;
+                System.Windows.Media.CompositionTarget.Rendering -= OnSpringRenderingTick;
+            }
+        }
+    }
+
+    private void LstFiles_Drop(object sender, DragEventArgs e)
+    {
+        ClearDropTargetHighlights();
+
+        if (e.Data.GetDataPresent("ReorderFileItem"))
+        {
+            // Các item đã được đổi chỗ động mượt mà trong quá trình rê chuột (DragOver)
+            if (_draggedItem != null)
+            {
+                LstFiles.SelectedItem = _draggedItem;
+                LstFiles.ScrollIntoView(_draggedItem);
+            }
+            e.Handled = true;
+        }
+        else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            Window_Drop(sender, e);
+        }
+    }
+
+    private void ClearDropTargetHighlights()
+    {
+        if (_currentDropTargetItem != null)
+        {
+            _currentDropTargetItem.IsDropTarget = false;
+            _currentDropTargetItem = null;
+        }
+        foreach (var item in _fileItems)
+        {
+            item.IsDropTarget = false;
+            item.IsDragging = false;
+        }
+    }
+
+    private static T? FindVisualAncestor<T>(DependencyObject? current) where T : DependencyObject
+    {
+        while (current != null)
+        {
+            if (current is T match)
+                return match;
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+        }
+        return null;
+    }
+    #endregion
 
     private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
@@ -449,6 +741,22 @@ public partial class MainWindow : FluentWindow
     private void BtnPasteClipboard_Click(object sender, RoutedEventArgs e)
     {
         PasteFromClipboard();
+    }
+
+    private void FileListContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        bool hasSelection = LstFiles.SelectedItem != null;
+        int count = _fileItems.Count;
+        int selectedIndex = LstFiles.SelectedIndex;
+
+        if (MnuMoveUp != null)
+            MnuMoveUp.IsEnabled = hasSelection && selectedIndex > 0;
+        if (MnuMoveDown != null)
+            MnuMoveDown.IsEnabled = hasSelection && selectedIndex < count - 1;
+        if (MnuRemoveSelected != null)
+            MnuRemoveSelected.IsEnabled = hasSelection;
+        if (MnuClearAll != null)
+            MnuClearAll.IsEnabled = count > 0;
     }
 
     private void PasteFromClipboard()
